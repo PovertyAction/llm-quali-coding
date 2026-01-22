@@ -30,6 +30,7 @@ update-reqs:
 # create virtual environment
 venv:
     uv sync
+    uv pip install -e .
     uv tool install pre-commit
     uv run pre-commit install
 

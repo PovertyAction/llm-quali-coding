@@ -1,72 +1,144 @@
-# Python project template
+# LLM Qualitative Coding
 
-Template repository for a python project.
+This repository is a walk through an end-to-end **qualitative coding workflow** using LLMs:
 
-## Development set up
+1. Local setup + first API call
+2. Translation (optional)
+3. Embeddings
+4. Relevance filtering (question ↔ chunks)
+5. Theme classification (themes ↔ chunks)
+6. Optional: theme extraction with an LLM
+7. Optional: direct coding with an LLM
+8. Optional: coding non-verbal cues with structured output
+9. Optional: exploratory clustering (inductive coding)
 
-Development relies on the following software
+This repo is designed for **learning foundations**. You can swap in your own transcripts and codebook later.
 
-- `winget` (Windows) or `homebrew` (MacOS/Linux) or `snap` (Linux) for package management and installation
-- `git` for source control management
-- `just` for running common command line patterns
-- `uv` for installing Python and managing virtual environments
+---
 
-This repository uses a `Justfile` for collecting common command line actions that we run
-to set up the computing environment and build the assets of the handbook. Note that you
-should also have Git installed
+## Quickstart (after cloning)
 
-To get started, make sure you have `Just` installed on your computer by running the
-following from the command line:
+### 1) Create a virtual environment and install dependencies
 
-| Platform  | Commands                                                            |
-| --------- | ------------------------------------------------------------------- |
-| Windows   | `winget install Git.Git Casey.Just astral-sh.uv GitHub.cli Posit.Quarto` |
-| Mac/Linux | `brew install just uv gh`                                          |
+1. This repo uses **uv** (recommended) and optionally **just**.
 
-This will make sure that you have the latest version of `Just`, as well as
-[uv](https://docs.astral.sh/uv/) (installer for Python) and
-[Quarto](https://quarto.org/docs/guide/) (for writing and compiling scientific and
-technical documents).
+   If you have `just` installed:
 
-- We use `Just` in order to make it easier for all IPA users to be productive with data
-  and technology systems. The goal of using a `Justfile` is to help make the end goal of
-  the user easier to achieve without needing to know or remember all of the technical
-  details of how we get to that goal.
-- We use `uv` to help ease use of Python. `uv` provides a global system for creating and
-  building computing environments for Python.
-- We use Quarto to allow users to focus on writing and data analytics. Writing in
-  markdown, jupyter notebooks, python scripts, R scripts, etc. makes it easier to
-  review, update, and deploy technical documentation.
-- We also recommend using in Integrated Development Environment (IDE).
-  Preferred options are `VS Code` or `Positron`.
+   ```bash
+   just get-started
+   ```
 
-| Platform  | Commands                                                            |
-| --------- | ------------------------------------------------------------------- |
-| Windows   | `winget install Microsoft.VisualStudioCode`                         |
-| Mac       | `brew install --cask visual-studio-code`                            |
-| Linux     | `sudo snap install code --classic`                                  |
+   If you do not have `just`:
 
-| Platform  | Commands                                                            |
-| --------- | ------------------------------------------------------------------- |
-| Windows   | `winget install Posit.Positron`                                     |
-| Mac       | `brew install --cask positron`                                      |
+   ```bash
+   uv sync
+   uv pip install -e .
+   ```
 
-As a shortcut, if you already have `Just` installed, you can run the following to
-install required software and build a python virtual environment that is used to build
-the handbook pages:
+2. Activate the virtual environment: `.venv/Scripts/activate.ps1`
+  
+### 2) Add your API key
 
-```bash
-just get-started
+1. Copy `.env.example` → `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Open `.env` and set:
+
+```text
+OPENAI_API_KEY=YOUR_KEY_HERE
 ```
 
-Note: you may need to restart your terminal after running the command above to activate
-the installed software.
+> Your `.env` file is ignored by Git (see `.gitignore`). Do not commit it.
 
-After the required software is installed, you can activate the Python virtual
-environment:
+---
 
-| Shell      | Commands                                |
-| ---------- | --------------------------------------- |
-| Bash       | `.venv/Scripts/activate`                |
-| Powershell | `.venv/Scripts/activate.ps1`            |
-| Nushell    | `overlay use .venv/Scripts/activate.nu` |
+### 3) Run the scripts (recommended order)
+
+#### Step 1 — Test connection
+
+```bash
+python examples/01_test_connection.py
+```
+
+#### Step 2 — Translate transcript (optional)
+
+```bash
+python examples/02_translate_transcript.py
+```
+
+#### Step 3 — Create embeddings
+
+```bash
+uv run python examples/03_create_embeddings.py
+```
+
+#### Step 4 — Relevance filtering (question ↔ chunks)
+
+```bash
+python examples/04_relevance_filtering.py
+```
+
+#### Step 5 — Theme classification (themes ↔ chunks)
+
+```bash
+python examples/05_theme_classification_embeddings.py
+```
+
+---
+
+## What you'll find in this repo
+
+- `docs/` — session notes and explanations
+- `data/sample_transcripts/` — small example transcript files
+- `data/themes/` — an example theme list (codebook-style)
+- `src/` — reusable functions (client, embeddings, similarity, chunking, coding)
+- `examples/` — runnable scripts in pedagogical order
+- `outputs/` — created automatically when you run examples (ignored by Git)
+
+---
+
+## How the pipeline works (mental model)
+
+```text
+Transcript(s)
+  ↓
+Chunking (split into paragraphs / segments)
+  ↓
+Embeddings for each chunk
+  ↓
+Question embedding
+  ↓
+Relevance score (dot product) → keep relevant chunks
+  ↓
+Theme embeddings (your codebook)
+  ↓
+Theme similarity scores
+  ↓
+Classification (argmax or threshold)
+```
+
+---
+
+## Customizing for your own project
+
+1. Replace the sample transcript in `data/sample_transcripts/`
+2. Replace the theme list in `data/themes/help_themes.json`
+3. Update the research question in `examples/04_relevance_filtering.py`
+4. Re-run scripts 03 → 05
+
+---
+
+## Notes on cost and privacy
+
+- Embeddings are usually cheap and fast.
+- LLM calls for theme extraction and direct coding can be more expensive.
+- Never upload sensitive transcripts unless you have approval and appropriate safeguards.
+
+---
+
+## License
+
+MIT (suggested). Add a LICENSE file if you want to publish.
