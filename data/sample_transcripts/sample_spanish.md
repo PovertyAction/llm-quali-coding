@@ -12,7 +12,7 @@ proceso de aprendizaje como la revisión y como la sistematización de bloom wit
 ustedes saben es toda esa parte de… como ustedes saben, bloom with love es la primera vez
 que se implementando y esto hace parte para aprender más de bloom with love, aprender qué
 salió bien, qué cosas se pueden mejorar, y para ello están haciendo con los diferentes
-espacios como con participantes de apapachos, también con facilitadora y también una
+espacios como con participantes de Bloom with Love, también con facilitadora y también una
 parte muy importante es con ustedes porque ustedes fueron el talento humano como que
 estuvo en contacto con las familias y como donde se llevaron a cabo las sesiones ¿no?
 entonces es
@@ -134,7 +134,7 @@ compañerito, en los talleres, ellos tenían mucho el marcado el no, no, no, est
 no hagas, entonces siento que la mamá al ir a a decirle al niño que está pegándole al otro,
 el decirle de otra manera digamos, que no lo hagas pero de otra manera, siento que esos
 cambios eee ….si se interiorizan…
-MODERADOR: también en otros espacios que no eran las sesiones de apapacho…
+MODERADOR: también en otros espacios que no eran las sesiones de Bloom with Love…
 FACILITADOR 2: sí , que se interiorizan y que la bitácora siento que al hacer las actividades de la
 bitácora también ayudan a que las familias se interioricen ¿sí? porque muchas veces
 vimos que el taller refiere el taller y dejar así como que ay sí dentro del taller volveremos y
@@ -234,7 +234,7 @@ cambiar el pañal, algo paso, le pegaron al niño, digamos que todo eso pasa en 
 entonces muchas veces, me gustaría que esas familias tuvieran el espacio para ellas,
 ¿sí? Que, entendemos los niños ¿sí? pero decirle al cuidador, bueno ustedes van a estar
 con los niños y la otra mitad las que quieren estar en bloom with love van a estar con
-apapachos ¿sí? para que entre como esa conexión y como que ellas puedan oxigenarse
+Bloom with Love ¿sí? para que entre como esa conexión y como que ellas puedan oxigenarse
 un poco, porque a veces uno siente en esos talleres que hay una presión de ellas con sus
 hijos ¿sí? que el niño que fue le pegó, el niño que fue y le quitó el banano al otro, la mamá
 que quiere lactar pero le da pena porque todo el mundo la está mirando, entonces eso
@@ -299,7 +299,7 @@ en los tiempos, porque como son talleres que se brindan familias son diferentes
 actividades hay unas que duran más tiempo que otras, entonces decíamos no, este
 tiempo se da para más, la facilitadora fue muy flexible, entonces eso ayuda a que las
 familias no estuvieran tan, digamos que tan, tan restringidas, como que ya nos toca pasar
-la otra actividad, si no, que se dio el tiempo para que se dieran los tiempos de apapacho,
+la otra actividad, si no, que se dio el tiempo para que se dieran los tiempos de Bloom with Love,
 MODERADOR: y ahora qué mencionas eso, desde el punto de vista de ustedes, ¡cómo fue la
 relación entre las facilitadoras y los cuidadores? ¿creen que hubo como vínculos de
 confianza?  ¿los cuidadores empezaron a sentir confianza con las facilitadoras? O
@@ -371,7 +371,7 @@ que…
 ENTREVISTADOR 2: contaban saus experiencias ahí
 FACILITADOR 4: sí señor
 FACILITADOR 3: durante la semana, entonces como no profe o no, le decían a la facilitadora
-esta semana hice el tiempo apapacho pero pasó tal cosa o estuve estresada o es como
+esta semana hice el tiempo Bloom with Love pero pasó tal cosa o estuve estresada o es como
 que ya ya se abrían un poco más de lo que había pasado con los niños en la semana
 MODERADOR: ¿cómo más creen que participaron aparte de contar las experiencias de ellas?
 ¿creen que hubo otra forma en la que participarán como lo vieron?
@@ -463,7 +463,7 @@ una articulación también, somos una una entidad que trabaja con Instituto Colo
 alterno o extra a lo que venimos trabajando, porque nosotros desde nuestro quehacer eh
 pues se trabajan temas de formación a familias y también nosotros damos como esos
 tipitos como para que ellas digamos estimula una estimulación adecuada, una eh bueno
-crianza positiva o pautas de crianza pero entonces lo que se vio en ese tiempo apapacho
+crianza positiva o pautas de crianza pero entonces lo que se vio en ese tiempo Bloom with Love
 fue que como que se se resaltó se se sí se rescató como o se profundizó aún más, como
 ese tipo de cositas que nosotros de una u otra manera trabajamos desde nuestro
 quehacer pedagógico en la unidad de servicio
@@ -696,7 +696,7 @@ no, no sé, ambientar un espacio bloom with love
 MODERADOR: ambientarlo es como…
 FACILITADOR 1: decorarlo como al tema como que ya ellas se sientan como en un espacio
 hoy hoy estoy en bloom with love, pero yo siento que como que llegaba a la sesión y ya, es la
-sesión de nosotras y apapacho y ya, pero de pronto ambientarlo, crear un espacio de ellas
+sesión de nosotras y Bloom with Love y ya, pero de pronto ambientarlo, crear un espacio de ellas
 
 diferente, que eso si se debe articular con todos nosotros, digamos que las profes ellas
 son demasiado juiciosas en ambientar espacios, y no piensan solo en la mamá sino en
@@ -921,7 +921,7 @@ sin generar como esos conflictos porque a la final pues sí a nosotros nos miden
 cumplimiento, estándares y demás, y pues obviamente ustedes llegan con una prueba
 piloto, pero entonces siento que no fueron flexible un poco en que podemos mirar de que
 nosotros también nos toca cumplir, entonces, ustedes también
-MODERADOR: cabe anotar que nosotros no somos de apapacho, ¿no?
+MODERADOR: cabe anotar que nosotros no somos de Bloom with Love, ¿no?
 -risas - no no no - risas
 MODERADOR: no, precisamente porque nosotros estamos haciendo como, la evaluación del
 Instituto Colombiano de Bienestar Familiar, pues para que puedan hablar con más libertad…

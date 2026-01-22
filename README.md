@@ -1,144 +1,99 @@
 # LLM Qualitative Coding
 
-This repository is a walk through an end-to-end **qualitative coding workflow** using LLMs:
+Training materials for learning to use Large Language Models for qualitative research coding and analysis.
 
-1. Local setup + first API call
-2. Translation (optional)
-3. Embeddings
-4. Relevance filtering (question ↔ chunks)
-5. Theme classification (themes ↔ chunks)
-6. Optional: theme extraction with an LLM
-7. Optional: direct coding with an LLM
-8. Optional: coding non-verbal cues with structured output
-9. Optional: exploratory clustering (inductive coding)
+## What is this?
 
-This repo is designed for **learning foundations**. You can swap in your own transcripts and codebook later.
+A hands-on training repository that teaches:
 
----
+- How to make API calls to LLMs from Python
+- What embeddings are and how to use them for semantic search
+- How to apply LLM capabilities to qualitative coding workflows
+- Practical techniques: theme extraction, direct coding, inductive clustering
 
-## Quickstart (after cloning)
+## Who is this for?
 
-### 1) Create a virtual environment and install dependencies
+Research staff who want to:
 
-1. This repo uses **uv** (recommended) and optionally **just**.
+- Use LLMs programmatically for qualitative analysis
+- Work with interview transcripts and qualitative data
+- Build AI-augmented coding and analysis tools
+- Understand embeddings and semantic similarity
 
-   If you have `just` installed:
+No prior LLM experience required. Basic Python knowledge helpful.
 
-   ```bash
-   just get-started
-   ```
-
-   If you do not have `just`:
-
-   ```bash
-   uv sync
-   uv pip install -e .
-   ```
-
-2. Activate the virtual environment: `.venv/Scripts/activate.ps1`
-  
-### 2) Add your API key
-
-1. Copy `.env.example` → `.env`:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Open `.env` and set:
+## Repository structure
 
 ```text
-OPENAI_API_KEY=YOUR_KEY_HERE
+llm-quali-coding/
+├── docs/                    # Session guides with step-by-step instructions
+│   ├── session_01_setup.md
+│   ├── session_02_embeddings_rag.md
+│   └── session_03_quali_coding.md
+├── examples/                # Runnable Python scripts
+│   ├── 01_test_connection.py
+│   ├── 02_translate_transcript.py
+│   ├── 03_create_embeddings.py
+│   ├── 04_relevance_filtering.py
+│   ├── 05_theme_classification_embeddings.py
+│   ├── 06_extract_themes_llm.py
+│   ├── 07_direct_coding_llm.py
+│   ├── 08_nonverbal_coding_llm.py
+│   └── 09_inductive_clustering.py
+├── src/                     # Reusable code modules
+│   ├── chunking.py
+│   ├── coding.py
+│   ├── embeddings.py
+│   ├── llm_tasks.py
+│   ├── openai_client.py
+│   └── similarity.py
+└── data/                    # Sample data for exercises
+    ├── sample_transcripts/
+    └── themes/
 ```
 
-> Your `.env` file is ignored by Git (see `.gitignore`). Do not commit it.
+## Training sessions
+
+### Day 1: Foundations
+
+1. **Session 01** (1 hour): Local setup and your first LLM API call
+2. **Session 02** (1 hour): Introduction to embeddings and RAG
+
+### Day 2: Qualitative Coding Applications
+
+1. **Session 03** (2 hours): Qualitative coding techniques with LLMs
+
+## Getting started
+
+1. Clone this repository
+2. Follow the setup instructions in `docs/session_01_setup.md`
+3. Complete sessions in order
+
+Each session builds on the previous one.
+
+## Requirements
+
+- Python 3.11+
+- OpenAI API key
+- Code editor (VS Code or Positron recommended)
+- Basic command line familiarity
+
+## Support
+
+- Session guides contain detailed instructions and troubleshooting
+- Example scripts include inline comments
+- Common issues documented in each session guide
+
+## Learning outcomes
+
+By the end of this training, you will:
+
+- Have a working local LLM development environment
+- Understand how to use LLM APIs programmatically
+- Know what embeddings are and when to use them for qualitative analysis
+- Be able to apply multiple LLM-based coding techniques to qualitative data
+- Have practical experience with theme extraction, classification, and clustering
 
 ---
 
-### 3) Run the scripts (recommended order)
-
-#### Step 1 — Test connection
-
-```bash
-python examples/01_test_connection.py
-```
-
-#### Step 2 — Translate transcript (optional)
-
-```bash
-python examples/02_translate_transcript.py
-```
-
-#### Step 3 — Create embeddings
-
-```bash
-uv run python examples/03_create_embeddings.py
-```
-
-#### Step 4 — Relevance filtering (question ↔ chunks)
-
-```bash
-python examples/04_relevance_filtering.py
-```
-
-#### Step 5 — Theme classification (themes ↔ chunks)
-
-```bash
-python examples/05_theme_classification_embeddings.py
-```
-
----
-
-## What you'll find in this repo
-
-- `docs/` — session notes and explanations
-- `data/sample_transcripts/` — small example transcript files
-- `data/themes/` — an example theme list (codebook-style)
-- `src/` — reusable functions (client, embeddings, similarity, chunking, coding)
-- `examples/` — runnable scripts in pedagogical order
-- `outputs/` — created automatically when you run examples (ignored by Git)
-
----
-
-## How the pipeline works (mental model)
-
-```text
-Transcript(s)
-  ↓
-Chunking (split into paragraphs / segments)
-  ↓
-Embeddings for each chunk
-  ↓
-Question embedding
-  ↓
-Relevance score (dot product) → keep relevant chunks
-  ↓
-Theme embeddings (your codebook)
-  ↓
-Theme similarity scores
-  ↓
-Classification (argmax or threshold)
-```
-
----
-
-## Customizing for your own project
-
-1. Replace the sample transcript in `data/sample_transcripts/`
-2. Replace the theme list in `data/themes/help_themes.json`
-3. Update the research question in `examples/04_relevance_filtering.py`
-4. Re-run scripts 03 → 05
-
----
-
-## Notes on cost and privacy
-
-- Embeddings are usually cheap and fast.
-- LLM calls for theme extraction and direct coding can be more expensive.
-- Never upload sensitive transcripts unless you have approval and appropriate safeguards.
-
----
-
-## License
-
-MIT (suggested). Add a LICENSE file if you want to publish.
+**Start here:** `docs/session_01_setup.md`

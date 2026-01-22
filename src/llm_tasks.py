@@ -59,6 +59,43 @@ def extract_candidate_themes(
     return response.output_text
 
 
+def extract_general_themes(client: OpenAI, transcript: str) -> str:
+    """Extract general themes from transcript without a specific research question.
+
+    This function performs inductive coding by asking the LLM to identify
+    recurring themes, patterns, and topics across the entire transcript.
+    """
+    cfg = load_config()
+    response = client.responses.create(
+        model=cfg.theme_extraction_model,
+        reasoning={"effort": cfg.theme_extraction_reasoning_effort},
+        input=[
+            {
+                "role": "developer",
+                "content": (
+                    "You are a PhD-level qualitative researcher. Your job is to analyze "
+                    "focus group transcripts and identify recurring themes, patterns, and topics. "
+                    "Use rigorous, research-appropriate language."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "I will give you a focus group transcript.\n"
+                    "Please read through the entire transcript and identify the main themes, patterns, and topics discussed.\n"
+                    "For each theme:\n"
+                    "1. Provide a clear, concise theme name\n"
+                    "2. Write a detailed definition (1-2 sentences)\n"
+                    "3. Mention key examples or quotes that illustrate the theme\n\n"
+                    "Organize themes logically and aim for 8-15 distinct themes that capture the breadth of discussion.\n\n"
+                    f"TRANSCRIPT:\n{transcript}"
+                ),
+            },
+        ],
+    )
+    return response.output_text
+
+
 def code_yes_no_for_theme(
     client: OpenAI, chunk_text: str, theme_definition: str
 ) -> str:
