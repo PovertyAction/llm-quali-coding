@@ -595,14 +595,14 @@ Have a specific research question?
 
 ## What you've learned
 
-✅ Apply embeddings to qualitative coding workflows
-✅ Filter transcript chunks by research question relevance
-✅ Classify chunks using theme similarity (codebook-based, deductive)
-✅ Extract themes inductively with LLMs
-✅ Discover patterns through unsupervised clustering
-✅ Code non-verbal and meta-features with LLM judgment
-✅ Understand trade-offs: embeddings (scale) vs. LLMs (nuance)
-✅ Generate interactive HTML reports for exploration and validation
+- ✅ Apply embeddings to qualitative coding workflows
+- ✅ Filter transcript chunks by research question relevance
+- ✅ Classify chunks using theme similarity (codebook-based, deductive)
+- ✅ Extract themes inductively with LLMs
+- ✅ Discover patterns through unsupervised clustering
+- ✅ Code non-verbal and meta-features with LLM judgment
+- ✅ Understand trade-offs: embeddings (scale) vs. LLMs (nuance)
+- ✅ Generate interactive HTML reports for exploration and validation
 
 ---
 
