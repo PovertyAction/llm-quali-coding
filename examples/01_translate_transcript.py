@@ -11,9 +11,9 @@ def main() -> None:
     client = get_client()
 
     inp = Path("data/sample_transcripts/sample_spanish.md")
-    out_dir = Path("outputs")
+    out_dir = Path("sample_transcripts")
     out_dir.mkdir(exist_ok=True)
-    outp = out_dir / "02_translated_english.md"
+    outp = out_dir / "sample_english.md"
 
     spanish = inp.read_text(encoding="utf-8")
     english = translate_to_english(client, spanish)
