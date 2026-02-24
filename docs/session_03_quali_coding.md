@@ -132,14 +132,13 @@ Make sure you have:
 - create environment (`just venv`)
 - `.env` with `OPENAI_API_KEY`
 - the repo open in VS Code
-- completed Session 02 (embeddings basics)
 - activate environment: `.venv/Scripts/activate.ps1`
 
 ---
 
 ### Activity A — Create embeddings for transcript
 
-**Optional first step:** If working with transcripts in languages other than English and you want to translate them, run:
+**Optional first step:** (SKIP FOR ENGLISH VERSION) If working with transcripts in languages other than English and you want to translate them, run:
 
 ```bash
 python examples/01_translate_transcript.py
