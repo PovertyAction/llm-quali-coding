@@ -146,7 +146,7 @@ def main() -> None:
     client = get_client()
 
     # Use the Spanish sample transcript (or translated English if available)
-    default_inp = Path("data/sample_transcripts/sample_spanish.md")
+    default_inp = Path("sample_transcripts/sample_english.md")
     translated = Path("outputs/01_translated_english.md")
     inp = translated if translated.exists() else default_inp
 

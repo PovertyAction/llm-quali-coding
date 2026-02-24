@@ -11,7 +11,7 @@ def main() -> None:
     client = get_client()
 
     # Try to load translated version first, fall back to Spanish original
-    inp = Path("outputs/02_translated_english.md")
+    inp = Path("sample_transcripts/sample_english.md")
     if not inp.exists():
         inp = Path("data/sample_transcripts/sample_spanish.md")
         if not inp.exists():

@@ -154,7 +154,7 @@ python examples/02_create_embeddings.py
 
 **What this script does:**
 
-1. Loads a sample transcript (Spanish focus group interview)
+1. Loads a sample transcript (focus group interview)
 2. **Parses speakers**: Identifies each speaker (MODERADOR, FACILITADOR 1, etc.) and what they said
 3. **Groups by moderator questions**: Creates chunks where each chunk contains:
    - The moderator's question
