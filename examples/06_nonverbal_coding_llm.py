@@ -22,7 +22,7 @@ def generate_nonverbal_html_report(df: pd.DataFrame, output_path: Path) -> None:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Códigos No Verbales - Resultados</title>
+    <title>Nonverbal Codes - Results</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -142,22 +142,22 @@ def generate_nonverbal_html_report(df: pd.DataFrame, output_path: Path) -> None:
 </head>
 <body>
     <div class="container">
-        <h1>🎭 Análisis de Códigos No Verbales</h1>
+        <h1>🎭 Analysis of Nonverbal Codes</h1>
 
         <div class="stats">
             <strong>Resumen General</strong>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number">{total_chunks}</div>
-                    <div class="stat-label">Total chunks analizados</div>
+                    <div class="stat-label">Total chunks analyzed</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">{chunks_with_cues}</div>
-                    <div class="stat-label">Chunks con señales no verbales</div>
+                    <div class="stat-label">Chunks with nonverbal cues</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number">{(chunks_with_cues / total_chunks * 100 if total_chunks > 0 else 0):.1f}%</div>
-                    <div class="stat-label">Porcentaje con señales</div>
+                    <div class="stat-label">Percentage with signals</div>
                 </div>
             </div>
         </div>
@@ -166,7 +166,7 @@ def generate_nonverbal_html_report(df: pd.DataFrame, output_path: Path) -> None:
     # Add sections by cue type
     if len(cue_type_counts) > 0:
         html += """
-        <h2>Tipos de Señales No Verbales</h2>
+        <h2>Types of Nonverbal Signals</h2>
 """
         for idx, (cue_type, count) in enumerate(cue_type_counts.items()):
             if not cue_type or cue_type.strip() == "":
@@ -268,26 +268,26 @@ def main() -> None:
 
     # Print summary
     print("\n" + "=" * 60)
-    print("RESUMEN DE CÓDIGOS NO VERBALES")
+    print("SUMMARY OF NONVERBAL CODES")
     print("=" * 60)
 
     chunks_with_cues = df[df["any_nonverbal_cue"] == "YES"]
-    print(f"\nTotal de chunks analizados: {len(df)}")
-    print(f"Chunks con señales no verbales: {len(chunks_with_cues)}")
-    print(f"Porcentaje: {len(chunks_with_cues) / len(df) * 100:.1f}%")
+    print(f"\nTotal chunks analyzed: {len(df)}")
+    print(f"Chunks with nonverbal cues: {len(chunks_with_cues)}")
+    print(f"Percentage: {len(chunks_with_cues) / len(df) * 100:.1f}%")
 
     if len(chunks_with_cues) > 0:
-        print("\n📊 Distribución por tipo de señal:")
+        print("\n📊 Distribution by signal type::")
         print("-" * 60)
         cue_counts = df["cue_type"].value_counts()
         for cue, count in cue_counts.items():
             if cue and cue.strip() != "":
                 print(f"{cue:40} {count:4d}")
 
-        print("\n🎭 Ejemplos de chunks con señales no verbales (primeros 3):")
+        print("\n🎭 Examples of chunks with nonverbal cues (first 3):")
         print("=" * 60)
         for i, (_, row) in enumerate(chunks_with_cues.head(3).iterrows(), 1):
-            print(f"\nEjemplo #{i} - Tipo: {row['cue_type']}")
+            print(f"\nExample #{i} - Type: {row['cue_type']}")
             print(f"Chunk ID: {row['chunk_id']}")
             print("-" * 60)
             preview = (
@@ -295,7 +295,7 @@ def main() -> None:
             )
             print(preview)
     else:
-        print("\n⚠️  No se detectaron señales no verbales en los chunks analizados.")
+        print("\n⚠️  No nonverbal signals were detected in the analyzed chunks.")
 
 
 if __name__ == "__main__":
