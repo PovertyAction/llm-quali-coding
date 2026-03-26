@@ -5,9 +5,20 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.coding import compute_relevance_scores, filter_relevant
+from src.coding import compute_relevance_scores
 from src.embeddings import get_embedding
 from src.openai_client import get_client
+
+
+def split_joint_text(text: str) -> tuple[str, str]:
+    r"""Split a joint chunk into moderator question and facilitator responses.
+
+    The joint text format is: '{moderator_question}\\n\\n{facilitator_responses}'
+    """
+    parts = text.split("\n\n", maxsplit=1)
+    if len(parts) == 2:
+        return parts[0].strip(), parts[1].strip()
+    return text.strip(), ""
 
 
 def main() -> None:
@@ -18,7 +29,7 @@ def main() -> None:
     inp = Path("outputs/01_chunks_with_embeddings.csv")
     if not inp.exists():
         raise FileNotFoundError(
-            "Missing outputs/03_chunks_with_embeddings.csv. Run: python examples/02_create_embeddings.py"
+            "Missing outputs/01_chunks_with_embeddings.csv. Run: python examples/02_create_embeddings.py"
         )
 
     df = pd.read_csv(inp)
@@ -34,25 +45,37 @@ def main() -> None:
 
     # Filter by relevance threshold
     threshold = 0.20
-    kept = df_sorted[df_sorted["question_similarity"] >= threshold]
+    kept = df_sorted[df_sorted["question_similarity"] >= threshold].copy()
 
-    print("Question:")
-    print(question)
-    print("\n--- Top 5 (most relevant) ---")
+    # Split joint text into structured columns
+    kept[["moderator_question", "responses"]] = kept["text"].apply(
+        lambda t: pd.Series(split_joint_text(t))
+    )
+
+    print(f"Question: {question}")
+    print(f"\n{'=' * 70}")
+    print(f"TOP 5 MOST RELEVANT CHUNKS (score >= {threshold})")
+    print(f"{'=' * 70}")
     for _, row in kept.head(5).iterrows():
-        print(f"score={row['question_similarity']:.3f} | chunk_id={row['chunk_id']}")
-        print(row["text"][:300] + "..." if len(row["text"]) > 300 else row["text"])
-        print()
-
-    rel = filter_relevant(df_sorted, threshold=threshold)
+        print(
+            f"\n[chunk_id={row['chunk_id']} | score={row['question_similarity']:.3f}]"
+        )
+        print(f"\nMODERATOR:\n{row['moderator_question']}")
+        print(f"\nRESPONSES:\n{row['responses']}")
+        print(f"\n{'-' * 70}")
 
     out_dir = Path("outputs")
     out_dir.mkdir(exist_ok=True)
     out_path = out_dir / "02_relevant_chunks.csv"
 
-    rel_to_save = rel.copy()
-    rel_to_save["embedding"] = rel_to_save["embedding"].apply(json.dumps)
-    rel_to_save.to_csv(out_path, index=False)
+    # Save structured columns (most relevant first), drop raw embedding
+    cols_to_save = [
+        "chunk_id",
+        "question_similarity",
+        "moderator_question",
+        "responses",
+    ]
+    kept[cols_to_save].to_csv(out_path, index=False)
 
     print(f"\nKept {len(kept)}/{len(df)} chunks with score >= {threshold}.")
     print(f"Wrote: {out_path}")
