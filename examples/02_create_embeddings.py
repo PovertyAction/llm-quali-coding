@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-from src.chunking import make_chunks
+from src.chunking import Chunk
 from src.coding import build_chunk_dataframe, embed_chunks
 from src.embeddings import get_embedding
 from src.openai_client import get_client
@@ -27,7 +27,7 @@ def parse_speakers(text: str) -> list[dict]:
 
     for line in lines:
         # Match speaker labels (e.g., "MODERADOR:", "FACILITADOR 1:")
-        speaker_match = re.match(r"^([A-ZÁÉÍÓÚÑ\s]+\d*):\s*(.*)$", line)
+        speaker_match = re.match(r"^([A-ZÁÉÍÓÚÑ\s]+\d*):\s*(.*)$", line, re.IGNORECASE)
 
         if speaker_match:
             # Save previous speaker's text
@@ -147,17 +147,21 @@ def main() -> None:
 
     # Use the Spanish sample transcript (or translated English if available)
     default_inp = Path("data/sample_transcripts/sample_spanish.md")
-    translated = Path("outputs/01_translated_english.md")
+    translated = Path("data/sample_transcripts/sample_english.md")
     inp = translated if translated.exists() else default_inp
 
     text = inp.read_text(encoding="utf-8")
 
     # Chunk by moderator questions (each chunk = moderator question + participant responses)
-    chunked_text = chunk_by_moderator_question(text)
-    print("Chunked transcript by moderator questions")
+    speakers = parse_speakers(text)
+    grouped = group_responses_by_moderator(speakers)
+    chunks = [
+        Chunk(chunk_id=i + 1, text=item["joint"])
+        for i, item in enumerate(grouped)
+        if item["joint"].strip()
+    ]
+    print(f"Chunked transcript by moderator questions: {len(chunks)} chunks")
 
-    # Use make_chunks to further split if needed (based on min_chars)
-    chunks = make_chunks(chunked_text, min_chars=250)
     df = build_chunk_dataframe(chunks)
 
     df = embed_chunks(client, df, text_col="text")

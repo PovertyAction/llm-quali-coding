@@ -69,7 +69,7 @@ def filter_relevant(df: pd.DataFrame, threshold: float = 0.20) -> pd.DataFrame:
     """Filter DataFrame to keep only chunks above relevance threshold."""
     return (
         df[df["question_similarity"] >= threshold]
-        .sort_values("question_similarity")
+        .sort_values("question_similarity", ascending=False)
         .reset_index(drop=True)
     )
 
