@@ -7,7 +7,7 @@ from pathlib import Path
 from src.chunking import Chunk
 from src.coding import build_chunk_dataframe, embed_chunks
 from src.embeddings import get_embedding
-from src.openai_client import get_client
+from src.openai_client import get_client, get_transcript_path, load_config
 
 
 def parse_speakers(text: str) -> list[dict]:
@@ -144,11 +144,15 @@ def chunk_by_moderator_question(text: str) -> str:
 def main() -> None:
     """Create embeddings for transcript chunks and save to CSV."""
     client = get_client()
+    cfg = load_config()
 
-    # Use the Spanish sample transcript (or translated English if available)
-    default_inp = Path("data/sample_transcripts/sample_spanish.md")
-    translated = Path("data/sample_transcripts/sample_english.md")
-    inp = translated if translated.exists() else default_inp
+    inp = get_transcript_path(cfg.transcript_language)
+    if not inp.exists():
+        raise FileNotFoundError(
+            f"Transcript file not found for language '{cfg.transcript_language}': {inp}\n"
+            "Set TRANSCRIPT_LANGUAGE in your .env file and ensure the corresponding file exists."
+        )
+    print(f"Using transcript: {inp}  (TRANSCRIPT_LANGUAGE={cfg.transcript_language})")
 
     text = inp.read_text(encoding="utf-8")
 

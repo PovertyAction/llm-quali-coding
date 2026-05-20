@@ -410,64 +410,67 @@ python examples/06_nonverbal_coding_llm.py
 
 ---
 
-### Activity F — Inductive clustering (optional)
+### Activity F — Model comparison (optional)
 
 Run:
 
 ```bash
-python examples/07_inductive_clustering.py
+python examples/07_model_comparison.py
 ```
 
 **What this script does:**
 
-1. Loads **all chunks** from Activity A (entire transcript with embeddings)
-2. Runs K-Means clustering algorithm to group similar chunks (creates 8 clusters)
-3. Generates t-SNE 2D visualization showing cluster relationships
-4. Saves results to CSV and PNG
-5. Shows example chunks from each cluster
+1. Loads the full transcript (controlled by `TRANSCRIPT_LANGUAGE` in your `.env`)
+2. Loads all chunks from Activity A
+3. Runs `extract_general_themes` on the full transcript with **Model A** and **Model B** independently
+4. Runs YES/NO coding (`code_yes_no_for_theme`) on **every chunk** with both models against the same reference theme
+5. Computes agreement and disagreement statistics across all chunks
+6. Generates a side-by-side HTML report and saves results to CSV
+
+Models default to `gpt-4o-mini` (Model A) vs `gpt-4o` (Model B) and can be changed via `.env`.
 
 **Outputs generated:**
 
-- **CSV file**: `outputs/06_clusters.csv` — All chunks with assigned cluster labels
-- **PNG visualization**: `outputs/06_clusters_tsne.png` — 2D scatter plot of clusters using t-SNE dimensionality reduction
-- **Console output**: Summary statistics, cluster sizes, and representative examples from each cluster
+- **CSV file**: `outputs/07_model_comparison.csv` — All chunks with both models' YES/NO decisions and agreement flag
+- **HTML report**: `outputs/07_model_comparison_report.html` — Interactive side-by-side view:
+  - Overview stats (total coded, agreement rate, disagreement breakdown)
+  - Model A vs Model B theme extraction displayed side by side
+  - Full chunk-by-chunk coding table with disagreements highlighted in red
+- **Theme text files**: `outputs/07_themes_model_a.txt` and `outputs/07_themes_model_b.txt`
+- **Console output**: Agreement rate, disagreement counts, example disagreements
+
+**To view the HTML report:** Open `outputs/07_model_comparison_report.html` in your web browser
 
 **When to use this approach:**
 
-Use clustering for **exploratory inductive analysis** when you don't have predefined themes and want to discover natural groupings in your data. The algorithm finds chunks that are semantically similar and groups them together.
+Use model comparison when you want to understand **how model choice affects your qualitative coding results**. Different models may identify different themes, apply codes more or less strictly, or interpret ambiguous passages differently. This is especially useful before committing to a model for a large-scale coding project.
 
 **What to observe:**
 
-- Do the clusters reveal meaningful patterns?
-- Are there unexpected groupings that suggest themes you hadn't considered?
-- How would you label these clusters as themes?
-- Do cluster sizes make sense? (Some topics may naturally be discussed more)
-- Looking at the t-SNE plot, are clusters well-separated or overlapping?
+- How similar are the themes each model extracts? Do they converge on the same concepts?
+- Which chunks do the models disagree on? What is ambiguous about them?
+- Is one model more inclusive (more YES answers) than the other?
+- Does the cheaper model (gpt-4o-mini) produce meaningfully different results from the stronger one (gpt-4o)?
+- Would these disagreements matter for your research conclusions?
 
 **What's happening:**
 
 ```text
-All chunk embeddings (1,536 dimensions) → K-Means (k=8 clusters)
+Full transcript → Model A (extract themes) → themes_a.txt
+Full transcript → Model B (extract themes) → themes_b.txt
+
+For each chunk:
+  Model A: code_yes_no_for_theme(chunk, reference_theme) → YES / NO
+  Model B: code_yes_no_for_theme(chunk, reference_theme) → YES / NO
+  ↓
+Agreement = (Model A decision == Model B decision)
 ↓
-Cluster 0: [40 chunks] Pattern about [identify from examples]
-Cluster 1: [35 chunks] Pattern about [identify from examples]
-Cluster 2: [28 chunks] Pattern about [identify from examples]
-...
-↓
-t-SNE reduces to 2D for visualization → PNG plot
+HTML report with side-by-side results + disagreement table
 ```
 
-**How to interpret clusters:**
+**Try this:** Change `COMPARE_MODEL_A` or `COMPARE_MODEL_B` in your `.env` to compare different model families or sizes. You can also swap in an Anthropic model endpoint if you have access.
 
-1. Read the example chunks from each cluster
-2. Identify common themes or topics across chunks in that cluster
-3. Give the cluster a descriptive label
-4. These labels become your emergent codebook
-5. Validate with research team
-
-**Use case:** Exploratory analysis when you don't have predefined themes. Clustering is especially useful for identifying unexpected patterns or when building a codebook from scratch.
-
-**Key insight:** Clustering is hypothesis-generating, not hypothesis-testing. The algorithm finds mathematical patterns in semantic space—you provide the qualitative interpretation. Always review clusters with domain expertise to ensure they're meaningful, not just mathematically coherent.
+**Key insight:** Model choice is a methodological decision. A high disagreement rate signals that your theme definition may be ambiguous — sharper definitions lead to higher agreement across models, just as they do across human coders.
 
 ---
 
@@ -531,7 +534,8 @@ Here's how you might combine these tools in a real project:
 - Check if theme definitions need adjustment
 - Look for themes that overlap too much or are too broad
 - Re-run classification with updated codebook if needed
-- Compare deductive codes (Activity C) with inductive findings (Activity D & F)
+- Compare deductive codes (Activity C) with inductive findings (Activity D)
+- Run model comparison (Activity F) to validate that coding results are stable across models
 
 **Step 8 — Synthesize findings:**
 
@@ -544,7 +548,7 @@ Here's how you might combine these tools in a real project:
 **Key decision points:**
 
 - **Research question-focused vs. comprehensive?** → Determines if you use relevance filtering (Activity B)
-- **Deductive vs. inductive?** → Determines if you start with codebook (Activity C) or generate themes (Activity D/F)
+- **Deductive vs. inductive?** → Determines if you start with codebook (Activity C) or generate themes (Activity D)
 - **Scale vs. nuance?** → Embeddings for classification, LLMs for complex judgments
 - **Focus group specific:** Non-verbal codes capture group dynamics that individual interviews miss
 
@@ -555,8 +559,7 @@ Here's how you might combine these tools in a real project:
 ```text
 Do you have a predefined codebook?
 ├─ YES → Use embedding classification (Activity C)
-│   └─ Want to explore patterns? → Also run clustering (Activity F)
-└─ NO → Extract themes with LLM (Activity D) OR cluster embeddings (Activity F)
+└─ NO → Extract themes with LLM (Activity D)
     └─ Then: Validate themes and proceed with classification
 
 Need to code non-verbal cues or meta-features?
@@ -564,6 +567,9 @@ Need to code non-verbal cues or meta-features?
 
 Have a specific research question?
 └─ YES → Filter by relevance first (Activity B), then code
+
+Unsure which model to use, or want to validate your coding is model-stable?
+└─ Run model comparison (Activity F)
 ```
 
 ---
@@ -576,8 +582,8 @@ Have a specific research question?
 **"Relevance filtering removes too many chunks"**
 → Lower your threshold or rephrase your research question to be broader.
 
-**"Clusters don't make sense"**
-→ Try different values of `k` (number of clusters). Clustering is exploratory—not all datasets have clear natural groupings. Review example chunks to identify patterns.
+**"Model comparison shows very low agreement"**
+→ This usually means the reference theme definition is too vague. Tighten the definition so it is more specific and unambiguous — the same way clearer codebook entries improve inter-rater reliability with human coders.
 
 **"Embedding classification misses subtle cases"**
 → This is expected. Use hybrid approach: embeddings for scale, complement with manual review of edge cases.

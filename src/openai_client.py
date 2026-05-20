@@ -2,19 +2,28 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
+# Maps known language codes to their bundled transcript files.
+# For any other language, files are resolved as data/sample_transcripts/sample_<lang>.md
+_TRANSCRIPT_FILES: dict[str, Path] = {
+    "en": Path("data/sample_transcripts/sample_english.md"),
+    "es": Path("data/sample_transcripts/sample_spanish.md"),
+}
+
 
 @dataclass(frozen=True)
 class ModelConfig:
-    """Configuration for OpenAI models."""
+    """Configuration for OpenAI models and transcript language."""
 
     llm_model: str
     theme_extraction_model: str
     theme_extraction_reasoning_effort: str
     embedding_model: str
+    transcript_language: str
 
 
 def load_config() -> ModelConfig:
@@ -26,6 +35,7 @@ def load_config() -> ModelConfig:
       - THEME_EXTRACTION_MODEL (default: gpt-5)
       - THEME_EXTRACTION_REASONING_EFFORT (default: high)
       - EMBEDDING_MODEL (default: text-embedding-3-large)
+      - TRANSCRIPT_LANGUAGE (default: en) — language code for transcript content
     """
     load_dotenv()
 
@@ -36,6 +46,18 @@ def load_config() -> ModelConfig:
             "THEME_EXTRACTION_REASONING_EFFORT", "high"
         ),
         embedding_model=os.getenv("EMBEDDING_MODEL", "text-embedding-3-large"),
+        transcript_language=os.getenv("TRANSCRIPT_LANGUAGE", "en").strip().lower(),
+    )
+
+
+def get_transcript_path(lang: str) -> Path:
+    """Return the transcript file path for the given language code.
+
+    Known languages (en, es) map to their bundled files.
+    Any other code falls back to data/sample_transcripts/sample_<lang>.md.
+    """
+    return _TRANSCRIPT_FILES.get(
+        lang, Path(f"data/sample_transcripts/sample_{lang}.md")
     )
 
 
