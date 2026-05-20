@@ -61,16 +61,24 @@ def extract_candidate_themes(
     return response.output_text
 
 
-def extract_general_themes(client: OpenAI, transcript: str) -> str:
+def extract_general_themes(
+    client: OpenAI, transcript: str, model: str | None = None
+) -> str:
     """Extract general themes from transcript without a specific research question.
 
     This function performs inductive coding by asking the LLM to identify
     recurring themes, patterns, and topics across the entire transcript.
+    Pass ``model`` to override the configured theme extraction model (e.g. for
+    side-by-side model comparisons). When overriding, reasoning is not applied
+    since the override target may not be a reasoning model.
     """
     cfg = load_config()
+    used_model = model or cfg.theme_extraction_model
+    create_kwargs: dict = {"model": used_model}
+    if model is None:
+        create_kwargs["reasoning"] = {"effort": cfg.theme_extraction_reasoning_effort}
     response = client.responses.create(
-        model=cfg.theme_extraction_model,
-        reasoning={"effort": cfg.theme_extraction_reasoning_effort},
+        **create_kwargs,
         input=[
             {
                 "role": "developer",
@@ -101,13 +109,19 @@ def extract_general_themes(client: OpenAI, transcript: str) -> str:
 
 
 def code_yes_no_for_theme(
-    client: OpenAI, chunk_text: str, theme_definition: str
+    client: OpenAI, chunk_text: str, theme_definition: str, model: str | None = None
 ) -> str:
-    """Return 'YES' or 'NO' depending on whether the chunk substantively relates to the theme."""
+    """Return 'YES' or 'NO' depending on whether the chunk substantively relates to the theme.
+
+    Pass ``model`` to override the configured LLM (e.g. for model comparisons).
+    """
     cfg = load_config()
+    used_model = model or cfg.llm_model
+    create_kwargs: dict = {"model": used_model}
+    if model is None:
+        create_kwargs["reasoning"] = {"effort": "low"}
     response = client.responses.create(
-        model=cfg.llm_model,
-        reasoning={"effort": "low"},
+        **create_kwargs,
         input=[
             {
                 "role": "developer",
