@@ -47,9 +47,11 @@ def extract_candidate_themes(
             {
                 "role": "user",
                 "content": (
-                    "I will give you an English focus group transcript.\n"
+                    "I will give you a focus group transcript.\n"
                     "Please extract candidate themes specifically relevant to the research question below.\n"
-                    "Return two sections: 'Helps integration' and 'Hinders integration'.\n\n"
+                    "Return two sections: 'Helps integration' and 'Hinders integration'.\n"
+                    "Always write theme names and section headings in English, even if the transcript is in another language.\n"
+                    "Quotes and examples may remain in the transcript's original language.\n\n"
                     f"RESEARCH QUESTION:\n{research_question}\n\n"
                     f"TRANSCRIPT:\n{english_transcript}"
                 ),
@@ -87,7 +89,9 @@ def extract_general_themes(client: OpenAI, transcript: str) -> str:
                     "1. Provide a clear, concise theme name\n"
                     "2. Write a detailed definition (1-2 sentences)\n"
                     "3. Mention key examples or quotes that illustrate the theme\n\n"
-                    "Organize themes logically and aim for 8-15 distinct themes that capture the breadth of discussion.\n\n"
+                    "Organize themes logically and aim for 8-15 distinct themes that capture the breadth of discussion.\n"
+                    "Always write theme names and definitions in English, even if the transcript is in another language.\n"
+                    "Quotes and examples may remain in the transcript's original language.\n\n"
                     f"TRANSCRIPT:\n{transcript}"
                 ),
             },
@@ -145,7 +149,8 @@ def code_nonverbal_cues(client: OpenAI, chunk_text: str) -> dict[str, Any]:
                 "role": "user",
                 "content": (
                     "From the CHUNK below, detect whether there is any explicit non-verbal cue info (e.g., laughter, pauses, confusion). "
-                    'Return ONLY valid JSON with exactly these keys: {"any_cues": "YES"|"NO", "cue_type": <short string or empty>}.\n\n'
+                    'Return ONLY valid JSON with exactly these keys: {"any_cues": "YES"|"NO", "cue_type": <short string or empty>}.\n'
+                    "Always write cue_type in English (e.g. 'Laughter', 'Pause', 'Confusion'), even if the transcript is in another language.\n\n"
                     f"CHUNK:\n{chunk_text}"
                 ),
             },

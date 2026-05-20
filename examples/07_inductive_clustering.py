@@ -67,12 +67,12 @@ def main() -> None:
         print(f"✅ Wrote: {out_png}")
 
     print("\n" + "=" * 60)
-    print("RESUMEN DE CLUSTERING")
+    print("CLUSTERING SUMMARY")
     print("=" * 60)
-    print(f"\nTotal de chunks: {len(df)}")
-    print(f"Número de clusters: {n_clusters}")
+    print(f"\nTotal chunks: {len(df)}")
+    print(f"Number of clusters: {n_clusters}")
 
-    print("\n📊 Tamaño de cada cluster:")
+    print("\nCluster sizes:")
     print("-" * 60)
     cluster_counts = df["cluster"].value_counts().sort_index()
     for cluster, count in cluster_counts.items():
@@ -80,7 +80,7 @@ def main() -> None:
         bar = "█" * int(pct / 2)
         print(f"Cluster {cluster}:  {count:4d} chunks ({pct:5.1f}%) {bar}")
 
-    print("\n📝 Ejemplos de chunks por cluster (primero de cada uno):")
+    print("\nExample chunks per cluster (first of each):")
     print("=" * 60)
     for c in sorted(df["cluster"].unique()):
         cluster_chunks = df[df["cluster"] == c]

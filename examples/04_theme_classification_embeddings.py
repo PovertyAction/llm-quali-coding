@@ -23,11 +23,11 @@ def generate_html_report(df: pd.DataFrame, themes: list, output_path: Path) -> N
     total_themes = len(theme_cols)
 
     html = f"""<!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clasificación Temática - Resultados</title>
+    <title>Theme Classification - Results</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -137,14 +137,14 @@ def generate_html_report(df: pd.DataFrame, themes: list, output_path: Path) -> N
 </head>
 <body>
     <div class="container">
-        <h1>📊 Clasificación Temática de Chunks</h1>
+        <h1>Theme Classification of Chunks</h1>
 
         <div class="stats">
-            <strong>Total de chunks analizados:</strong> {total_chunks}<br>
-            <strong>Total de temas:</strong> {total_themes}
+            <strong>Total chunks analyzed:</strong> {total_chunks}<br>
+            <strong>Total themes:</strong> {total_themes}
         </div>
 
-        <h2>Resumen por Tema</h2>
+        <h2>Summary by Theme</h2>
         <div class="theme-summary">
 """
 
@@ -158,14 +158,14 @@ def generate_html_report(df: pd.DataFrame, themes: list, output_path: Path) -> N
             <div class="theme-card">
                 <h3>{theme_col}</h3>
                 <div class="count">{count}</div>
-                <div class="avg-score">Score promedio: {avg_score:.3f}</div>
+                <div class="avg-score">Avg. score: {avg_score:.3f}</div>
             </div>
 """
 
     html += """
         </div>
 
-        <h2>Chunks por Tema</h2>
+        <h2>Chunks by Theme</h2>
 """
 
     # Add detailed sections for each theme
@@ -182,10 +182,10 @@ def generate_html_report(df: pd.DataFrame, themes: list, output_path: Path) -> N
         html += f"""
         <h2 onclick="toggleTheme('theme-{idx}')">
             {theme_col} ({len(theme_df)} chunks)
-            <span class="toggle-indicator">▼ Click para expandir</span>
+            <span class="toggle-indicator">▼ Click to expand</span>
         </h2>
         <div id="theme-{idx}" class="theme-content">
-            <p><strong>Definición:</strong> {full_name}</p>
+            <p><strong>Definition:</strong> {full_name}</p>
 """
 
         # Show top 5 chunks for this theme
@@ -260,13 +260,13 @@ def main() -> None:
     print(f"✅ Wrote interactive report: {html_path}")
 
     print("\n" + "=" * 60)
-    print("RESUMEN DE CLASIFICACIÓN TEMÁTICA")
+    print("THEME CLASSIFICATION SUMMARY")
     print("=" * 60)
 
-    print(f"\nTotal de chunks analizados: {len(df)}")
-    print(f"Total de temas: {len(theme_cols)}")
+    print(f"\nTotal chunks analyzed: {len(df)}")
+    print(f"Total themes: {len(theme_cols)}")
 
-    print("\n📊 Distribución de chunks por tema:")
+    print("\nChunk distribution by theme:")
     print("-" * 60)
     counts = df["most_similar_theme"].value_counts()
     for theme, count in counts.items():
@@ -276,7 +276,7 @@ def main() -> None:
 
     # Print top examples per theme with better formatting
     print("\n" + "=" * 60)
-    print("EJEMPLOS TOP POR TEMA (mejores 3 de cada uno)")
+    print("TOP EXAMPLES PER THEME (best 3 each)")
     print("=" * 60)
 
     for t in theme_cols:
@@ -286,14 +286,13 @@ def main() -> None:
         if len(top) == 0:
             continue
 
-        # Get theme full name
         theme_obj = next((th for th in themes if th.short_name == t), None)
         full_name = theme_obj.full_definition if theme_obj else t
 
         print(f"\n{'=' * 60}")
-        print(f"🏷️  TEMA: {t}")
-        print(f"📝 Definición: {full_name}")
-        print(f"📊 Total de chunks: {len(df[df['most_similar_theme'] == t])}")
+        print(f"THEME: {t}")
+        print(f"Definition: {full_name}")
+        print(f"Total chunks: {len(df[df['most_similar_theme'] == t])}")
         print(f"{'=' * 60}")
 
         for i, (_, row) in enumerate(top.iterrows(), 1):
