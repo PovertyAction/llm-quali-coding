@@ -63,6 +63,13 @@ llm-quali-coding/
 
 1. **Session 03** (2 hours): Qualitative coding techniques with LLMs
 
+## Local pipeline (no API keys)
+
+`docs/local_pipeline.md` runs the whole workflow on a laptop with open-weights
+embeddings and Presidio de-identification, on fictitious data, and hands only
+de-identified passages to Claude Code. Start there if you cannot send
+transcripts to an external API.
+
 ## Getting started
 
 1. Clone this repository

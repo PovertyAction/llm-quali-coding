@@ -1,58 +1,12 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
-from src.chunking import Chunk
+from src.chunking import Chunk, parse_speakers
 from src.coding import build_chunk_dataframe, embed_chunks
 from src.embeddings import get_embedding
 from src.openai_client import get_client, get_transcript_path, load_config
-
-
-def parse_speakers(text: str) -> list[dict]:
-    """Parse transcript into speaker-text pairs.
-
-    Args:
-        text: Full transcript text with speaker labels
-
-    Returns:
-        List of dicts with 'speaker' and 'text' keys
-
-    """
-    lines = text.split("\n")
-    speakers = []
-    current_speaker = None
-    current_text = []
-
-    for line in lines:
-        # Match speaker labels (e.g., "MODERADOR:", "FACILITADOR 1:")
-        speaker_match = re.match(r"^([A-ZÁÉÍÓÚÑ\s]+\d*):\s*(.*)$", line, re.IGNORECASE)
-
-        if speaker_match:
-            # Save previous speaker's text
-            if current_speaker and current_text:
-                speakers.append(
-                    {"speaker": current_speaker, "text": " ".join(current_text).strip()}
-                )
-
-            # Start new speaker
-            current_speaker = speaker_match.group(1).strip()
-            current_text = (
-                [speaker_match.group(2)] if speaker_match.group(2).strip() else []
-            )
-        else:
-            # Continue current speaker's text
-            if line.strip():
-                current_text.append(line.strip())
-
-    # Add last speaker
-    if current_speaker and current_text:
-        speakers.append(
-            {"speaker": current_speaker, "text": " ".join(current_text).strip()}
-        )
-
-    return speakers
 
 
 def group_responses_by_moderator(responses: list[dict]) -> list[dict]:

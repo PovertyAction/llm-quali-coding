@@ -37,6 +37,18 @@ venv:
 activate-venv:
     uv shell
 
+# Local pipeline, step 1: split and de-identify the fictitious transcript
+local-deid:
+    uv run python -m examples.local.01_deidentify
+
+# Local pipeline, step 2: filter and code passages with local embeddings
+local-classify:
+    uv run python -m examples.local.02_filter_classify
+
+# Local pipeline, step 3: compare model codes with the human sample
+local-compare:
+    uv run python -m examples.local.03_compare
+
 # launch jupyter lab
 lab:
     uv run jupyter lab
