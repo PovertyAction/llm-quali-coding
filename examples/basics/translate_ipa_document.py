@@ -51,6 +51,9 @@ def translate_to_spanish(text: str, provider: str, client, model: str) -> str:
         model=model,
         messages=messages,
         temperature=0.3,  # Lower temperature for more consistent translation
+        # Room for the whole document; the default (1,024 tokens with Anthropic)
+        # would cut the translation off partway through.
+        max_tokens=8192,
     )
 
     return response_text

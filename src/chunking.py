@@ -137,6 +137,8 @@ def chunk_text_simple(
 
     This is intentionally simple for Session 02.
     """
+    if max_chars <= 0 or not 0 <= overlap < max_chars:
+        raise ValueError("Need max_chars > 0 and 0 <= overlap < max_chars.")
     text = text.strip()
     if not text:
         return []

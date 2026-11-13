@@ -2,6 +2,7 @@
 
 import os
 import pickle
+import re
 
 import numpy as np
 import pandas as pd
@@ -223,6 +224,46 @@ def main() -> None:
 
     for example in examples:
         print("=" * 60)
+        answer = rag_query_with_filters(
+            example["query"], df, example["project"], example["section"]
+        )
+
+        print("\n" + "-" * 60)
+        print("ANSWER:")
+        print("-" * 60)
+        print(answer)
+        print("\n")
+
+    # Interactive mode
+    print("=" * 60)
+    print("Interactive mode (type 'quit' to exit)")
+    print("Commands:")
+    print("  - Normal query: Just type your question")
+    print("  - Filter by project: [project:ProjectName] Your question")
+    print("  - Filter by section: [section:SectionName] Your question")
+    print("-" * 60)
+
+    while True:
+        user_input = input("\nYour question: ").strip()
+
+        if user_input.lower() in ["quit", "exit", "q"]:
+            print("Goodbye!")
+            break
+
+        if not user_input:
+            continue
+
+        # Parse filters from input: [project:Name] and [section:Name], in any
+        # order and any letter case, then remove them from the question
+        pattern = r"\[(project|section):([^\]]*)\]"
+        found = {
+            key.lower(): value.strip()
+            for key, value in re.findall(pattern, user_input, flags=re.IGNORECASE)
+        }
+        project_filter = found.get("project")
+        section_filter = found.get("section")
+        query = re.sub(pattern, "", user_input, flags=re.IGNORECASE).strip()
+
         answer = rag_query_with_filters(
             example["query"], df, example["project"], example["section"]
         )

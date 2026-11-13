@@ -3,6 +3,7 @@
 import importlib.util
 import os
 import pickle
+from html import escape
 from pathlib import Path
 
 import pandas as pd
@@ -57,12 +58,14 @@ def rag_query(query: str, df: pd.DataFrame) -> tuple[str, pd.DataFrame]:
 
 
 def evaluate_answer(answer: str, expected: str) -> dict:
-    """Evaluate answer quality against expected content.
+    """Run two keyword checks on an answer.
+
+    These are rough signals, not measures of accuracy: "The report does not
+    state any response rate" passes both. Read the answers to judge them.
 
     Returns dict with:
-    - contains_fact: bool
-    - has_citation: bool
-    - hallucination_check: bool (inverse - does it avoid making things up)
+    - contains_expected: the expected keyword appears in the answer
+    - has_citation: the answer uses a word such as "project" or "report"
     """
     return {
         "contains_expected": expected.lower() in answer.lower(),
@@ -175,17 +178,20 @@ def generate_report(results: pd.DataFrame, output_file: str) -> None:
 <body>
     <h1>RAG Evaluation Report</h1>
 
-    <h2>Summary Metrics</h2>
+    <h2>Summary: keyword checks</h2>
+    <p>These are keyword checks, not measures of accuracy. An answer passes
+    when it contains the expected word, or a word such as "project" or
+    "report". Read the answers below to judge them.</p>
     <div class="comparison">
         <div class="method">
             <h3>Direct LLM</h3>
-            <p><strong>Factual Accuracy:</strong> {results["direct_contains_expected"].mean():.1%}</p>
-            <p><strong>Citation Rate:</strong> {results["direct_has_citation"].mean():.1%}</p>
+            <p><strong>Expected keyword present:</strong> {results["direct_contains_expected"].mean():.1%}</p>
+            <p><strong>Mentions a source word:</strong> {results["direct_has_citation"].mean():.1%}</p>
         </div>
         <div class="method">
             <h3>RAG System</h3>
-            <p><strong>Factual Accuracy:</strong> {results["rag_contains_expected"].mean():.1%}</p>
-            <p><strong>Citation Rate:</strong> {results["rag_has_citation"].mean():.1%}</p>
+            <p><strong>Expected keyword present:</strong> {results["rag_contains_expected"].mean():.1%}</p>
+            <p><strong>Mentions a source word:</strong> {results["rag_has_citation"].mean():.1%}</p>
             <p><strong>Avg Retrieval Similarity:</strong> {results["rag_avg_similarity"].mean():.3f}</p>
         </div>
     </div>
@@ -197,7 +203,7 @@ def generate_report(results: pd.DataFrame, output_file: str) -> None:
             <th>Category</th>
             <th>Direct Answer</th>
             <th>RAG Answer</th>
-            <th>Winner</th>
+            <th>More keyword checks passed</th>
         </tr>
 """
 
@@ -217,10 +223,10 @@ def generate_report(results: pd.DataFrame, output_file: str) -> None:
 
         html += f"""
         <tr>
-            <td>{row["query"]}</td>
-            <td>{row["category"]}</td>
-            <td>{row["direct_answer"][:150]}...</td>
-            <td>{row["rag_answer"][:150]}...</td>
+            <td>{escape(row["query"])}</td>
+            <td>{escape(row["category"])}</td>
+            <td>{escape(row["direct_answer"][:150])}...</td>
+            <td>{escape(row["rag_answer"][:150])}...</td>
             <td><strong>{winner}</strong></td>
         </tr>
 """
@@ -232,8 +238,8 @@ def generate_report(results: pd.DataFrame, output_file: str) -> None:
     <div class="metric">
         <h3>Key Findings:</h3>
         <ul>
-            <li><strong>Factual Accuracy:</strong> RAG should show higher accuracy for project-specific questions</li>
-            <li><strong>Citation Rate:</strong> RAG should consistently provide citations</li>
+            <li><strong>Expected keyword:</strong> RAG should more often use the terms found in the project reports</li>
+            <li><strong>Source words:</strong> RAG answers should refer to a project or report; check that the reference is real</li>
             <li><strong>Out-of-scope handling:</strong> Both should say "not available" for questions outside document scope</li>
         </ul>
     </div>

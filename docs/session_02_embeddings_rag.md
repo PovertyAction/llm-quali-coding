@@ -135,10 +135,9 @@ just venv
 Make sure you have:
 
 - active environment (`.venv`)
-- `.env` with either `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` (or both)
-  - If you have both keys, the system defaults to Anthropic (Claude)
+- `.env` with `OPENAI_API_KEY` (required: every step creates embeddings with OpenAI's `text-embedding-3-small`)
+  - `ANTHROPIC_API_KEY` is optional. If it is set too, Step C writes its answer with Claude
   - You can explicitly set `LLM_PROVIDER=openai` or `LLM_PROVIDER=anthropic` in `.env` to choose
-  - Note: Embeddings always use OpenAI's `text-embedding-3-small` model regardless of LLM provider
 - the repo open in VS Code
 
 ---
@@ -290,7 +289,7 @@ Now that you've seen how the mini-RAG example works, it's time to build your own
    - "What is the minimum advance time required for the delivery date according to the procurement request level in IPA's ProcessMaker system, and what happens if a user has not visited ProcessMaker recently?"
    - "If an IPA user does not find the Grant Allocation Code they need when creating a procurement request in ProcessMaker, who should they contact and what is the list of available codes based on?"
 
-**Starting point:** Use `examples/03_mini_rag.py` as your reference code and adapt it to work with the procurement document.
+**Starting point:** Use `examples/embeddings/03_mini_rag.py` as your reference code and adapt it to work with the procurement document.
 
 **You can:**
 

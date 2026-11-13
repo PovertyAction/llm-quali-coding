@@ -4,8 +4,9 @@ Runs on the laptop: spaCy's Spanish model finds names and places, Presidio's
 pattern recognizers find phone numbers and emails, and an optional name list
 (for example, the focus group roster) catches names the model misses.
 
-Detectors miss things. Read the findings table before anything leaves the
-laptop.
+Detectors miss things, and the findings table lists only what was found.
+Before anything leaves the laptop, read the de-identified text next to the
+original to look for names and numbers that are still there.
 """
 
 from __future__ import annotations
@@ -115,12 +116,19 @@ def deidentify_gliner(
         for e in model.predict_entities(text, list(GLINER_LABELS), threshold=threshold)
     ]
     for name in known_names or []:
-        for m in re.finditer(rf"\b{re.escape(name)}\b", text):
+        for m in re.finditer(rf"\b{re.escape(name)}\b", text, re.IGNORECASE):
             spans.append((m.start(), m.end(), "person", 1.0, "KnownNames"))
+    # Merge overlapping spans so the whole union is replaced. Otherwise "Rosa"
+    # (model) inside "Rosa Méndez" (name list) would leave "Méndez" behind.
+    merged: list[tuple] = []
+    for span in sorted(spans):
+        if merged and span[0] < merged[-1][1]:
+            first = merged[-1]
+            merged[-1] = (first[0], max(first[1], span[1]), *first[2:])
+        else:
+            merged.append(span)
     findings, out, last = [], [], 0
-    for start, end, label, score, source in sorted(spans):
-        if start < last:  # overlaps a span already replaced
-            continue
+    for start, end, label, score, source in merged:
         out += [text[last:start], GLINER_LABELS[label]]
         last = end
         findings.append(

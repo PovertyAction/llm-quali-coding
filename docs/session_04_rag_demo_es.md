@@ -579,17 +579,16 @@ python examples/rag/06_rag_evaluation.py
 
 **Lo que hace este script:**
 
-1. Crea un **conjunto de prueba** de preguntas con respuestas conocidas (ground truth)
-2. **Compara tres enfoques**:
+1. Crea un pequeño **conjunto de prueba** de preguntas, cada una con una palabra clave que la respuesta debería contener
+2. **Compara dos enfoques**:
    - **LLM Directo** (sin RAG, sin acceso a documentos)
    - **RAG con recuperación** (pipeline completo)
-   - **Oráculo** (LLM con documentos enteros, no solo chunks)
-3. **Evalúa cada enfoque**:
-   - Precisión factual (¿la respuesta coincide con ground truth?)
-   - Calidad de citaciones (¿se proveen fuentes y son correctas?)
-   - Completitud (¿está incluida toda la info relevante?)
-   - Tasa de alucinación (¿el LLM inventa información?)
+3. **Aplica dos revisiones de palabras clave a cada respuesta**:
+   - ¿Contiene la palabra clave esperada?
+   - ¿Menciona una palabra de fuente como "project" o "report"?
 4. Genera reporte de comparación: `outputs/04_rag_evaluation_report.html`
+
+Las revisiones de palabras clave son señales aproximadas, no medidas de precisión: una respuesta como "el reporte no indica ninguna tasa de respuesta" pasa ambas. Lee las respuestas en el reporte para juzgarlas. Las métricas de abajo describen lo que seguiría una evaluación más completa.
 
 **Preguntas de prueba (ejemplos):**
 

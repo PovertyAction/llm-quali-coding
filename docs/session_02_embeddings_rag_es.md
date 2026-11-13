@@ -281,7 +281,7 @@ Ahora que has visto cómo funciona el ejemplo de mini-RAG, ¡es hora de construi
    - "¿Cuál es el tiempo mínimo de anticipación requerido para la fecha de entrega según el nivel de solicitud de adquisición en el sistema ProcessMaker de IPA, y qué sucede si un usuario no ha visitado ProcessMaker recientemente?"
    - "Si un usuario de IPA no encuentra el Código de Asignación de Subvención que necesita al crear una solicitud de adquisición en ProcessMaker, ¿a quién debe contactar y en qué se basa la lista de códigos disponibles?"
 
-**Punto de partida:** Usa `examples/03_mini_rag.py` como tu código de referencia y adáptalo para trabajar con el documento de adquisiciones.
+**Punto de partida:** Usa `examples/embeddings/03_mini_rag.py` como tu código de referencia y adáptalo para trabajar con el documento de adquisiciones.
 
 **Puedes:**
 

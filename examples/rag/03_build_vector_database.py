@@ -1,5 +1,6 @@
 """Activity C: Build vector database and test retrieval."""
 
+import ast
 import os
 import pickle
 
@@ -24,7 +25,8 @@ def load_chunks(csv_file: str) -> pd.DataFrame:
     df = df.dropna(subset=["embedding"])
 
     # Convert embedding strings back to lists
-    df["embedding"] = df["embedding"].apply(eval)
+    # literal_eval only reads data; eval would run any code found in the file
+    df["embedding"] = df["embedding"].apply(ast.literal_eval)
 
     return df
 

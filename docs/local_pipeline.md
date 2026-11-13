@@ -55,7 +55,13 @@ as well as the answer.
 
 `01_findings.csv` lists every replacement: entity type, the text found, a
 score, and which recognizer found it. It holds the original names, so it stays
-on the laptop. Check two things:
+on the laptop. It lists only what was found, so it cannot show you what the
+detector missed. Before step 3, read every row of `01_passages_deid.csv`
+(question and text) next to the transcript and look for names, numbers, and
+places that are still there. Speaker labels are replaced with numbered
+participants, in case a transcript labels turns with real names.
+
+Then check two things in the findings:
 
 - **Misses.** spaCy's Spanish model does not find every name. The name list in
   `lista_participantes.txt` (the roster a team already has) catches the rest.

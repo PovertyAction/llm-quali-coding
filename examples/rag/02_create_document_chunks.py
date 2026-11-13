@@ -21,6 +21,16 @@ def count_tokens(text: str, model: str = "gpt-4") -> int:
     return len(encoding.encode(text))
 
 
+def tail_lines(lines: list[str], max_tokens: int) -> list[str]:
+    """Return the last lines that fit in max_tokens."""
+    kept: list[str] = []
+    for line in reversed(lines):
+        if count_tokens("\n".join([line, *kept])) > max_tokens:
+            break
+        kept.insert(0, line)
+    return kept
+
+
 def chunk_by_sections(
     markdown_text: str, source: str, chunk_size: int = 600, overlap: int = 100
 ) -> list[dict]:
@@ -59,14 +69,7 @@ def chunk_by_sections(
                 )
                 chunk_id += 1
 
-                # Start new chunk with overlap
-                overlap_lines = (
-                    current_chunk[-5:] if len(current_chunk) > 5 else current_chunk
-                )
-                current_chunk = overlap_lines.copy()
-                current_tokens = count_tokens("\n".join(current_chunk))
-
-            # Update section title
+            # A new section starts a fresh chunk (no overlap across sections)
             current_section = line.strip("#").strip()
             current_chunk = [line]
             current_tokens = count_tokens(line)
@@ -88,9 +91,9 @@ def chunk_by_sections(
                 )
                 chunk_id += 1
 
-                # Start new chunk with overlap
-                overlap_lines = current_chunk[-5:]
-                current_chunk = overlap_lines.copy()
+                # Start the next chunk with the last lines of this one, up to
+                # `overlap` tokens
+                current_chunk = tail_lines(current_chunk, overlap)
                 current_tokens = count_tokens("\n".join(current_chunk))
 
     # Add final chunk

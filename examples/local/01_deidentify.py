@@ -45,6 +45,9 @@ def main() -> None:
 
     passages, findings = [], []
     question = ""
+    # A speaker label can be a real name ("Rosa Méndez:"), so each speaker is
+    # exported as a numbered participant, in order of first appearance.
+    speaker_ids: dict[str, str] = {}
     for turn in turns:
         if "MODERADOR" in turn["speaker"].upper():
             # The question travels with each passage, so it is cleaned too.
@@ -59,7 +62,9 @@ def main() -> None:
         passages.append(
             {
                 "passage_id": passage_id,
-                "speaker": turn["speaker"],
+                "speaker": speaker_ids.setdefault(
+                    turn["speaker"], f"PARTICIPANTE {len(speaker_ids) + 1}"
+                ),
                 "question": question,
                 "text": text,
             }
@@ -74,7 +79,8 @@ def main() -> None:
     pd.DataFrame(findings).to_csv(findings_csv, index=False)
     print(f"{len(passages)} passages, {len(findings)} items replaced.")
     print(f"Wrote {passages_csv} and {findings_csv}")
-    print(f"Read {findings_csv.name}: what did {detector} miss?")
+    print(f"{findings_csv.name} lists only what {detector} found.")
+    print(f"To see what it missed, read {passages_csv.name} next to the transcript.")
 
 
 if __name__ == "__main__":

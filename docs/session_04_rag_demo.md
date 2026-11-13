@@ -585,17 +585,16 @@ python examples/rag/06_rag_evaluation.py
 
 **What this script does:**
 
-1. Creates a **test set** of questions with known answers (ground truth)
-2. **Compares three approaches**:
+1. Creates a small **test set** of questions, each with a keyword the answer should contain
+2. **Compares two approaches**:
    - **Direct LLM** (no RAG, no document access)
    - **RAG with retrieval** (full pipeline)
-   - **Oracle** (LLM with entire documents, not just chunks)
-3. **Evaluates each approach**:
-   - Factual accuracy (does answer match ground truth?)
-   - Citation quality (are sources provided and correct?)
-   - Completeness (is all relevant info included?)
-   - Hallucination rate (does LLM make up information?)
-4. Generates comparison report: `outputs/10_rag_evaluation_report.html`
+3. **Runs two keyword checks on each answer**:
+   - Does it contain the expected keyword?
+   - Does it mention a source word such as "project" or "report"?
+4. Generates comparison report: `outputs/04_rag_evaluation_report.html`
+
+The keyword checks are rough signals, not measures of accuracy: an answer such as "the report does not state any response rate" passes both. Read the answers in the report to judge them. The metrics below describe what a fuller evaluation would track.
 
 **Test questions (examples):**
 
@@ -658,29 +657,29 @@ Oracle (all docs)| 95%      | 90%       | 2%
 
 **Step 2 — Convert to markdown:**
 
-- Run `examples/01_pdf_to_markdown.py`
+- Run `examples/rag/01_pdf_to_markdown.py`
 - Review converted markdown in `outputs/markdown/`
 - Manually fix any extraction errors (tables, headers, lists)
 - Validate that document structure is preserved
 
 **Step 3 — Create embeddings:**
 
-- Run `examples/02_create_document_chunks.py`
+- Run `examples/rag/02_create_document_chunks.py`
 - Review chunking strategy: ~500 token chunks, section-based
 - Check `outputs/07_document_chunks.csv`
 - Verify metadata: all projects and sections labeled correctly
 
 **Step 4 — Build vector database:**
 
-- Run `examples/03_build_vector_database.py`
+- Run `examples/rag/03_build_vector_database.py`
 - Test retrieval with sample queries
 - Validate that relevant chunks are retrieved
 - Check similarity scores (should be >0.7 for good matches)
 
 **Step 5 — Deploy RAG system:**
 
-- Run `examples/04_rag_system_basic.py` for standard queries
-- Run `examples/05_rag_with_metadata.py` for project-specific queries
+- Run `examples/rag/04_rag_system_basic.py` for standard queries
+- Run `examples/rag/05_rag_with_metadata.py` for project-specific queries
 - Save conversation history for record-keeping
 
 **Step 6 — Query your knowledge base:**
@@ -728,7 +727,7 @@ A: Project B achieved 72% completion through:
 
 **Step 7 — Evaluate and iterate:**
 
-- Run `examples/06_rag_evaluation.py`
+- Run `examples/rag/06_rag_evaluation.py`
 - Review evaluation report
 - Identify failure modes:
   - Poor retrieval? → Adjust chunking or k-value

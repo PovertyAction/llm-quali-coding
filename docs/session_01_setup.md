@@ -167,7 +167,8 @@ just venv
 
 | Shell      | Command                                     |
 |------------|---------------------------------------------|
-| Bash       | `.venv/Scripts/activate`                    |
+| Bash (macOS, Linux) | `source .venv/bin/activate` |
+| Git Bash (Windows) | `source .venv/Scripts/activate` |
 | PowerShell | `.venv/Scripts/activate.ps1`                |
 | Nushell    | `overlay use .venv/Scripts/activate.nu`     |
 
