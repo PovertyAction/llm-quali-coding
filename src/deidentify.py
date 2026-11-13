@@ -10,6 +10,8 @@ laptop.
 
 from __future__ import annotations
 
+import re
+
 from presidio_analyzer import AnalyzerEngine, PatternRecognizer, RecognizerRegistry
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_analyzer.predefined_recognizers import (
@@ -80,3 +82,53 @@ def deidentify(
         text=text, analyzer_results=results, operators=operators
     )
     return anonymized.text, findings
+
+
+# GLiNER-PII: a second detector, a small transformer that reads the whole
+# sentence instead of matching patterns. Its model card lists English only, so
+# check its findings on Spanish text as carefully as Presidio's.
+GLINER_MODEL = "nvidia/gliner-PII"
+GLINER_LABELS = {
+    "person": "<PERSONA>",
+    "phone_number": "<TELEFONO>",
+    "email": "<CORREO>",
+    "location": "<LUGAR>",
+}
+
+
+def load_gliner():
+    """Load GLiNER-PII (downloaded once from Hugging Face, then runs offline)."""
+    from gliner import GLiNER
+
+    return GLiNER.from_pretrained(GLINER_MODEL)
+
+
+def deidentify_gliner(
+    text: str,
+    model,
+    known_names: list[str] | None = None,
+    threshold: float = 0.3,
+) -> tuple[str, list[dict[str, object]]]:
+    """Replace entities with GLiNER-PII and the name list; same output as deidentify()."""
+    spans = [
+        (e["start"], e["end"], e["label"], round(e["score"], 2), "GLiNER-PII")
+        for e in model.predict_entities(text, list(GLINER_LABELS), threshold=threshold)
+    ]
+    for name in known_names or []:
+        for m in re.finditer(rf"\b{re.escape(name)}\b", text):
+            spans.append((m.start(), m.end(), "person", 1.0, "KnownNames"))
+    findings, out, last = [], [], 0
+    for start, end, label, score, source in sorted(spans):
+        if start < last:  # overlaps a span already replaced
+            continue
+        out += [text[last:start], GLINER_LABELS[label]]
+        last = end
+        findings.append(
+            {
+                "entity": label,
+                "found": text[start:end],
+                "score": score,
+                "recognizer": source,
+            }
+        )
+    return "".join(out) + text[last:], findings

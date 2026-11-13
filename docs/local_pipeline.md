@@ -33,6 +33,7 @@ Face cache. After that, steps 1, 2, and 4 work offline.
 
 ```bash
 just local-deid       # outputs/local/01_passages_deid.csv and 01_findings.csv
+                      # optional: just local-deid-gliner, see below
 just local-classify   # outputs/local/02_coded.csv
 just local-compare    # agreement with data/fictitious/codigos_humanos.csv
 ```
@@ -50,6 +51,23 @@ on the laptop. Check two things:
   Remove a name from the list and rerun to see what slips through.
 - **Over-redaction.** The model tags some ordinary words as names. That loses
   meaning but does not leak anything.
+
+### Optional: a second detector, GLiNER-PII
+
+[GLiNER-PII](https://huggingface.co/nvidia/gliner-PII) is an open-weights
+model from NVIDIA that reads the whole sentence instead of matching patterns.
+It downloads once (about 1.7 GB), then runs on the laptop.
+
+```bash
+just local-deid-gliner   # outputs/local/01_passages_deid_gliner.csv and 01_findings_gliner.csv
+```
+
+On the fictitious focus group it found every planted name, phone number, and
+email without the name list. It also replaced "Mi esposo", "Yo", and
+"tesorera", which the coding step needs. Its model card lists English only.
+Compare the two findings files; step 2 reads the Presidio file. The threshold
+(0.3, from the model's evaluation) is an argument to `deidentify_gliner()`.
+Raising it cuts over-redaction and raises the risk of misses.
 
 ### Step 2: filter and code with embeddings
 
