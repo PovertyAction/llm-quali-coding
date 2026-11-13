@@ -40,7 +40,7 @@ activate-venv:
 local-deid:
     uv run python -m examples.local.01_deidentify
 
-# Local pipeline, step 1 with GLiNER-PII instead of Presidio
+# Local pipeline, step 1 with GLiNER2-PII instead of Presidio
 local-deid-gliner:
     uv run python -m examples.local.01_deidentify --gliner
 

@@ -7,7 +7,7 @@ Writes:
 - outputs/local/01_findings.csv: what the detector replaced. It holds the
   original names, so it stays on the laptop.
 
-Uses Presidio by default. Pass --gliner to use GLiNER-PII instead; it writes
+Uses Presidio by default. Pass --gliner to use GLiNER2-PII instead; it writes
 01_passages_deid_gliner.csv and 01_findings_gliner.csv so you can compare the
 two detectors. Step 2 reads the Presidio file.
 """
@@ -32,7 +32,7 @@ def main() -> None:
     names = (DATA / "lista_participantes.txt").read_text("utf-8").splitlines()
     names = [n for n in names if n.strip()]
     if "--gliner" in sys.argv:
-        detector, model = "GLiNER-PII", load_gliner()
+        detector, model = "GLiNER2-PII", load_gliner()
 
         def clean(text: str):
             return deidentify_gliner(text, model, known_names=names)
@@ -71,7 +71,7 @@ def main() -> None:
         )
         findings += [{"passage_id": passage_id, "column": "text", **f} for f in found]
 
-    suffix = "_gliner" if detector == "GLiNER-PII" else ""
+    suffix = "_gliner" if detector == "GLiNER2-PII" else ""
     passages_csv = OUT / f"01_passages_deid{suffix}.csv"
     findings_csv = OUT / f"01_findings{suffix}.csv"
     OUT.mkdir(parents=True, exist_ok=True)
