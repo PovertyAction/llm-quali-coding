@@ -30,12 +30,29 @@ update-reqs:
 # create virtual environment
 venv:
     uv sync
-    uv pip install -e .
     uv tool install pre-commit
     uv run pre-commit install
 
 activate-venv:
     uv shell
+
+# Local pipeline, step 1: split and de-identify the fictitious transcript
+local-deid:
+    uv run python -m examples.local.01_deidentify
+
+# Local pipeline, step 1 with GLiNER-PII instead of Presidio
+local-deid-gliner:
+    uv run python -m examples.local.01_deidentify --gliner
+
+# Local pipeline, step 2: filter and code passages with local embeddings
+local-classify:
+    uv run python -m examples.local.02_filter_classify
+
+# Local pipeline, step 3 is done in Claude Code: see docs/local_pipeline.md
+
+# Local pipeline, step 4: compare model codes with the human sample
+local-compare:
+    uv run python -m examples.local.04_compare
 
 # launch jupyter lab
 lab:
