@@ -1,8 +1,9 @@
 """Step 1: split the transcript into passages and de-identify them on the laptop.
 
 Writes:
-- outputs/local/01_passages_deid.csv: one row per participant turn, names and
-  numbers replaced. This is the only file that goes to Claude.
+- outputs/local/01_passages_deid.csv: one row per participant turn, with the
+  moderator's question; names and numbers replaced in both. This is the only
+  file that goes to Claude.
 - outputs/local/01_findings.csv: what the detector replaced. It holds the
   original names, so it stays on the laptop.
 
@@ -46,7 +47,12 @@ def main() -> None:
     question = ""
     for turn in turns:
         if "MODERADOR" in turn["speaker"].upper():
-            question = turn["text"]
+            # The question travels with each passage, so it is cleaned too.
+            question, found = clean(turn["text"])
+            findings += [
+                {"passage_id": len(passages) + 1, "column": "question", **f}
+                for f in found
+            ]
             continue
         passage_id = len(passages) + 1
         text, found = clean(turn["text"])
@@ -58,7 +64,7 @@ def main() -> None:
                 "text": text,
             }
         )
-        findings += [{"passage_id": passage_id, **f} for f in found]
+        findings += [{"passage_id": passage_id, "column": "text", **f} for f in found]
 
     suffix = "_gliner" if detector == "GLiNER-PII" else ""
     passages_csv = OUT / f"01_passages_deid{suffix}.csv"

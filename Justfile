@@ -30,7 +30,6 @@ update-reqs:
 # create virtual environment
 venv:
     uv sync
-    uv pip install -e .
     uv tool install pre-commit
     uv run pre-commit install
 
@@ -49,9 +48,11 @@ local-deid-gliner:
 local-classify:
     uv run python -m examples.local.02_filter_classify
 
-# Local pipeline, step 3: compare model codes with the human sample
+# Local pipeline, step 3 is done in Claude Code: see docs/local_pipeline.md
+
+# Local pipeline, step 4: compare model codes with the human sample
 local-compare:
-    uv run python -m examples.local.03_compare
+    uv run python -m examples.local.04_compare
 
 # launch jupyter lab
 lab:

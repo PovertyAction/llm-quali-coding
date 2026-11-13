@@ -26,6 +26,8 @@ repos:
     rev: v0.45.0
     hooks:
       - id: markdownlint-fix
+        # Data files are inputs to the pipelines: never rewrite them.
+        exclude: ^data/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.2

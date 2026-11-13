@@ -22,32 +22,37 @@ from src.coding import (
 from src.local_embeddings import embed_texts
 
 OUT = Path("outputs/local")
-# Low on purpose: the filter only drops clear small talk. Retune for your data.
-THRESHOLD = 0.25
+# Tuned for the default model in src/local_embeddings.py, whose scores all
+# fall between about 0.70 and 0.90. Another model needs another value: step 4
+# (just local-compare) prints the agreement for each candidate threshold.
+THRESHOLD = 0.78
 OFF_TOPIC = "Fuera de tema"
 
 
 def main() -> None:
     """Score relevance, classify by most similar theme, and save."""
-    df = pd.read_csv(OUT / "01_passages_deid.csv")
+    passages = OUT / "01_passages_deid.csv"
+    if not passages.exists():
+        raise SystemExit(f"Missing {passages}. Run step 1 first: just local-deid")
+    df = pd.read_csv(passages)
     df["embedding"] = embed_texts(df["text"].tolist())
 
     themes = load_themes(Path("data/fictitious/codebook_ficticio.json"))
-    vectors = embed_texts([t.full_definition for t in themes])
+    vectors = embed_texts([t.full_definition for t in themes], query=True)
     themes = [
         Theme(t.short_name, t.full_definition, v)
         for t, v in zip(themes, vectors, strict=True)
     ]
     names = [t.short_name for t in themes]
     df = add_theme_similarity_columns(df, themes)
-    df = classify_by_max_theme(df, names, out_col="embedding_theme")
+    df = classify_by_max_theme(df, names, out_col="nearest_theme")
     df["relevance"] = df[names].max(axis=1).round(2)
-    df.loc[df["relevance"] < THRESHOLD, "embedding_theme"] = OFF_TOPIC
+    relevant = df["relevance"] >= THRESHOLD
+    df["embedding_theme"] = df["nearest_theme"].where(relevant, OFF_TOPIC)
 
-    out = df[["passage_id", "relevance", "embedding_theme", "text"]]
+    out = df[["passage_id", "relevance", "nearest_theme", "embedding_theme", "text"]]
     out.to_csv(OUT / "02_coded.csv", index=False)
-    relevant = (df["relevance"] >= THRESHOLD).sum()
-    print(f"{relevant} of {len(df)} passages at or above relevance {THRESHOLD}.")
+    print(f"{relevant.sum()} of {len(df)} passages at or above relevance {THRESHOLD}.")
     print(out["embedding_theme"].value_counts().to_string())
     print(f"Wrote {OUT / '02_coded.csv'}")
 

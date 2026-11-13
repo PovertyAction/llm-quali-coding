@@ -8,39 +8,50 @@ needed.
 All data in `data/fictitious/` is invented. Use the same steps on real
 transcripts only after the IRB protocol and the IPA AI Usage Guidelines allow
 it: a de-identified transcript is not automatically Internal data. Ask
-support@poverty-action.org when unsure.
+<support@poverty-action.org> when unsure.
 
 ## What runs where
 
-  | Step                       | Tool                                         | Where          |
-  | -------------------------- | -------------------------------------------- | -------------- |
-  | 1. Split and de-identify   | Presidio, spaCy `es_core_news_md`, name list | Laptop         |
-  | 2. Filter and code         | `paraphrase-multilingual-mpnet-base-v2`      | Laptop         |
-  | 3. Code the same passages  | Claude Code, reading the de-identified CSV   | Claude         |
-  | 4. Compare with a person   | scikit-learn: agreement, Cohen's kappa       | Laptop         |
+  | Step                      | Tool                                         | Where  |
+  | ------------------------- | -------------------------------------------- | ------ |
+  | 1. Split and de-identify  | Presidio, spaCy `es_core_news_md`, name list | Laptop |
+  | 2. Filter and code        | `granite-embedding-97m-multilingual-r2`      | Laptop |
+  | 3. Code the same passages | Claude Code, reading the de-identified CSV   | Claude |
+  | 4. Compare with a person  | scikit-learn: agreement, Cohen's kappa       | Laptop |
 
 ## Setup, once
+
+You need [uv](https://docs.astral.sh/uv/) and
+[just](https://just.systems/). The main [README](../README.md) shows how to
+install them. Then, in a terminal opened in the repository folder:
 
 ```bash
 just venv
 uv run python -c "from src.local_embeddings import embed_texts; embed_texts(['hola'])"
 ```
 
-The second line downloads the embedding model (about 1.1 GB) into the Hugging
-Face cache. After that, steps 1, 2, and 4 work offline.
+The first line installs Python and the packages. The second downloads the
+embedding model (about 210 MB) into the Hugging Face cache. After that, steps
+1, 2, and 4 work offline.
 
 ## Run it
 
 ```bash
-just local-deid       # outputs/local/01_passages_deid.csv and 01_findings.csv
-                      # optional: just local-deid-gliner, see below
-just local-classify   # outputs/local/02_coded.csv
-just local-compare    # agreement with data/fictitious/codigos_humanos.csv
+just local-deid       # step 1: outputs/local/01_passages_deid.csv and 01_findings.csv
+just local-classify   # step 2: outputs/local/02_coded.csv
+                      # step 3: ask Claude Code, see below
+just local-compare    # step 4: agreement with data/fictitious/codigos_humanos.csv
 ```
 
-Each step takes under a minute on a laptop CPU once the models are downloaded.
+Each command takes under a minute on a laptop CPU once the models are
+downloaded. Everything they write goes to `outputs/local/`, which Git ignores.
 
 ### Step 1: read the findings
+
+`01_passages_deid.csv` has one row per participant turn: the speaker label,
+the moderator's question, and what the participant said. Names, phone numbers,
+emails, and places are replaced with tags such as `<PERSONA>`, in the question
+as well as the answer.
 
 `01_findings.csv` lists every replacement: entity type, the text found, a
 score, and which recognizer found it. It holds the original names, so it stays
@@ -71,27 +82,45 @@ Raising it cuts over-redaction and raises the risk of misses.
 
 ### Step 2: filter and code with embeddings
 
-Each passage gets a relevance score: its similarity to the closest codebook
-theme. Passages under the threshold (0.25, set low on purpose) are coded
-`Fuera de tema`; the rest get the most similar theme. On the fictitious data
-this agrees with the human codes on about 80 percent of the sample. Most
-misses are small talk the filter let through.
+An embedding model turns each passage, and each theme definition in the
+codebook, into a list of numbers. Texts with similar meaning get similar
+numbers, so the script can score how close a passage is to each theme.
+
+Each passage gets a relevance score: its similarity to the closest theme.
+Passages under `THRESHOLD` (0.78) are coded `Fuera de tema`; the rest get the
+most similar theme. `02_coded.csv` keeps both: `nearest_theme` is the closest
+theme whatever the score, and `embedding_theme` is the code after the filter.
+
+On the fictitious data this agrees with the human codes on 15 of the 20
+sampled passages (75 percent, Cohen's kappa 0.70).
+
+The threshold is a trade-off:
+
+- **Lower** keeps more passages. Small talk slips through and gets a theme it
+  does not deserve, but you see it when you read the results.
+- **Higher** keeps only strong matches. Real passages that mention a theme
+  indirectly are dropped, and nobody reads the discard pile unless told to.
+
+When unsure, go lower. Step 4 prints the agreement for each candidate value.
 
 ### Step 3: ask Claude Code
 
 Start `claude` in the repository root and paste:
 
 ```text
-Read outputs/local/02_coded.csv and data/fictitious/codebook_ficticio.json.
+Read outputs/local/01_passages_deid.csv and data/fictitious/codebook_ficticio.json.
 For every passage, choose exactly one theme short name from the codebook, or
-"Fuera de tema" if none fits. Write outputs/local/claude_codes.csv with the
-columns passage_id and theme. Use only the passage text; do not guess who
-anyone is. Do not open any other file in data/ or outputs/.
+"Fuera de tema" if none fits. Write outputs/local/03_claude_codes.csv with the
+columns passage_id and theme. Use only the question and the passage text; do
+not guess who anyone is. Do not open any other file in data/ or outputs/.
 ```
+
+Claude reads the de-identified passages, not `02_coded.csv`, so it does not
+see the codes from step 2 and the two stay independent.
 
 Read the plan and the file Claude writes before you accept.
 `.claude/settings.json` also tells Claude Code not to read the raw transcript,
-the name list, or the findings file. Treat that as a guardrail, not a
+the name list, or the findings files. Treat that as a guardrail, not a
 guarantee: the safest place for a raw transcript is a folder Claude Code never
 opens.
 
@@ -107,10 +136,41 @@ opens.
   whether the definition was unclear (fix the codebook), the model was wrong
   (keep the human code), or the human code was wrong.
 
+For the embeddings it also prints the agreement at each candidate `THRESHOLD`.
+With 20 passages, one passage moves agreement by 5 points, so a difference of
+one row in that table is not evidence. Code more passages by hand before you
+trust a threshold.
+
 ## Using your own data
 
 1. Keep the raw transcript outside any folder Claude Code opens, or add it to
    the deny list in `.claude/settings.json`.
 2. Put the team roster in a name list; keep it local.
 3. Code 20 to 30 passages by hand before you look at any model output.
-4. Retune `THRESHOLD` in `examples/local/02_filter_classify.py`.
+4. Point the paths at the top of the scripts in `examples/local/` to your
+   files. The scripts expect speaker labels such as `MODERADOR:` and
+   `PARTICIPANTE 1:` at the start of a line.
+5. Retune `THRESHOLD` in `examples/local/02_filter_classify.py` with the table
+   from step 4.
+
+## Trying another embedding model
+
+Copy `.env.example` to `.env` and set `LOCAL_EMBEDDING_MODEL` to any
+[Sentence Transformers](https://sbert.net/) model on Hugging Face, for example
+`sentence-transformers/paraphrase-multilingual-mpnet-base-v2` (about 1.1 GB).
+
+Every model scores on its own scale. The default model puts all passages
+between about 0.70 and 0.90; the mpnet model spreads them from 0.10 to 0.70.
+A threshold tuned for one model is wrong for another, so rerun steps 2 and 4
+and pick a new `THRESHOLD` from the table.
+
+## If something goes wrong
+
+- **`Missing outputs/local/...`**: run the earlier step first. The steps go in
+  order: `local-deid`, `local-classify`, `local-compare`.
+- **`ModuleNotFoundError: No module named 'src'`**: run `just venv` again, and
+  run commands from the repository folder.
+- **The first run of a step is slow or fails without internet**: it is
+  downloading a model. Later runs work offline.
+- **Accents look wrong when you open a CSV in Excel**: the files are UTF-8.
+  Open them in VS Code, or in Excel with Data > From Text/CSV and choose UTF-8.

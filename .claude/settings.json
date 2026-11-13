@@ -4,10 +4,12 @@
       "Read(./data/fictitious/grupo_focal_ficticio.md)",
       "Read(./data/fictitious/lista_participantes.txt)",
       "Read(./outputs/local/01_findings.csv)",
+      "Read(./outputs/local/01_findings_gliner.csv)",
       "Read(./data/sample_transcripts/**)",
       "Bash(cat data/fictitious/grupo_focal_ficticio.md)",
       "Bash(cat data/fictitious/lista_participantes.txt)",
-      "Bash(cat outputs/local/01_findings.csv)"
+      "Bash(cat outputs/local/01_findings.csv)",
+      "Bash(cat outputs/local/01_findings_gliner.csv)"
     ]
   }
 }
