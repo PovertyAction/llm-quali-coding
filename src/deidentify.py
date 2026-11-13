@@ -128,15 +128,18 @@ def deidentify_gliner(
             spans.append((m.start(), m.end(), "person", 1.0, "KnownNames"))
     # Merge overlapping spans so the whole union is replaced. Otherwise "Rosa"
     # (model) inside "Rosa Méndez" (name list) would leave "Méndez" behind.
-    merged: list[tuple] = []
+    # The union takes the label of its widest span, so a name found inside an
+    # email address is still reported as an email.
+    merged: list[list] = []  # [start, end, widest span]
     for span in sorted(spans):
         if merged and span[0] < merged[-1][1]:
-            first = merged[-1]
-            merged[-1] = (first[0], max(first[1], span[1]), *first[2:])
+            group = merged[-1]
+            group[1] = max(group[1], span[1])
+            group[2] = max(group[2], span, key=lambda s: s[1] - s[0])
         else:
-            merged.append(span)
+            merged.append([span[0], span[1], span])
     findings, out, last = [], [], 0
-    for start, end, label, score, source in merged:
+    for start, end, (_, _, label, score, source) in merged:
         out += [text[last:start], GLINER_LABELS[label]]
         last = end
         findings.append(
