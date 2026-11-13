@@ -85,10 +85,10 @@ def deidentify(
     return anonymized.text, findings
 
 
-# GLiNER-PII: a second detector, a small transformer that reads the whole
-# sentence instead of matching patterns. Its model card lists English only, so
-# check its findings on Spanish text as carefully as Presidio's.
-GLINER_MODEL = "nvidia/gliner-PII"
+# GLiNER2-PII: a second detector, a small multilingual transformer (Spanish is
+# on its model card) that reads the whole sentence instead of matching
+# patterns. It finds names without a list and over-redacts words like "esposo".
+GLINER_MODEL = "fastino/gliner2-privacy-filter-PII-multi"
 GLINER_LABELS = {
     "person": "<PERSONA>",
     "phone_number": "<TELEFONO>",
@@ -98,22 +98,30 @@ GLINER_LABELS = {
 
 
 def load_gliner():
-    """Load GLiNER-PII (downloaded once from Hugging Face, then runs offline)."""
-    from gliner import GLiNER
+    """Load GLiNER2-PII (downloaded once from Hugging Face, then runs offline)."""
+    from gliner2 import GLiNER2
 
-    return GLiNER.from_pretrained(GLINER_MODEL)
+    return GLiNER2.from_pretrained(GLINER_MODEL)
 
 
 def deidentify_gliner(
     text: str,
     model,
     known_names: list[str] | None = None,
-    threshold: float = 0.3,
+    threshold: float = 0.5,
 ) -> tuple[str, list[dict[str, object]]]:
-    """Replace entities with GLiNER-PII and the name list; same output as deidentify()."""
+    """Replace entities with GLiNER2-PII and the name list; same output as deidentify()."""
+    result = model.extract_entities(
+        text,
+        list(GLINER_LABELS),
+        threshold=threshold,
+        include_confidence=True,
+        include_spans=True,
+    )
     spans = [
-        (e["start"], e["end"], e["label"], round(e["score"], 2), "GLiNER-PII")
-        for e in model.predict_entities(text, list(GLINER_LABELS), threshold=threshold)
+        (e["start"], e["end"], label, round(e["confidence"], 2), "GLiNER2-PII")
+        for label, found in result["entities"].items()
+        for e in found
     ]
     for name in known_names or []:
         for m in re.finditer(rf"\b{re.escape(name)}\b", text, re.IGNORECASE):
