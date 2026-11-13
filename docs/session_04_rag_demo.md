@@ -79,7 +79,7 @@ Return answer with source citations
 - Easier to process programmatically
 - Better quality embeddings
 
-**Tools:** We'll use `pymupdf4llm` which intelligently extracts text while preserving markdown structure.
+**Tools:** We'll use `docling`, which reads the page layout to find headings and tables and writes them as markdown. It includes its own OCR for scanned pages, so there is nothing else to install.
 
 ---
 
@@ -196,7 +196,7 @@ Make sure you have:
 - Three project PDF reports in `data/project_reports/`
 - Activate environment: `.venv/Scripts/activate.ps1`
 
-All required packages (pymupdf4llm, openai, pandas, numpy, scikit-learn, etc.) will be installed automatically when you run `just venv`.
+All required packages (docling, openai, pandas, numpy, scikit-learn, etc.) will be installed automatically when you run `just venv`.
 
 ---
 
@@ -212,7 +212,7 @@ python examples/rag/01_pdf_to_markdown.py
 
 1. Scans `data/project_reports/` for PDF files
 2. For each PDF:
-   - Extracts text using `pymupdf4llm`
+   - Extracts text using `docling` (the first run downloads its models, about 500 MB, and takes a few minutes)
    - Preserves markdown structure (headers, lists, paragraphs)
    - Cleans formatting artifacts
    - Saves to `outputs/markdown/project_name.md`
@@ -230,7 +230,7 @@ python examples/rag/01_pdf_to_markdown.py
 
 **Common issues:**
 
-- **Scanned PDFs (images)**: Won't extract well—need OCR first
+- **Scanned PDFs (images)**: docling runs OCR on them, but expect more errors than with text PDFs—read the output
 - **Complex tables**: May not convert perfectly—inspect output
 - **Multi-column layouts**: Text order might be wrong—verify manually
 
@@ -748,7 +748,7 @@ A: Project B achieved 72% completion through:
 ## Common issues and solutions
 
 **"PDF conversion has garbled text"**
-→ PDF might be scanned (image-based). Use OCR tool first (Adobe Acrobat, Tesseract).
+→ PDF might be scanned (image-based). Docling runs OCR automatically; check the markdown in `outputs/markdown/` for recognition errors.
 
 **"Chunks are too small/too large"**
 → Adjust chunking parameters in `02_create_document_chunks.py`. Try 300-800 token range.
@@ -887,7 +887,7 @@ Use these to reflect on your RAG implementation:
 - **OpenAI Embeddings Guide**: <https://platform.openai.com/docs/guides/embeddings>
 - **Chunking Strategies**: <https://www.pinecone.io/learn/chunking-strategies/>
 - **RAG Evaluation**: <https://docs.llamaindex.ai/en/stable/examples/evaluation/>
-- **PDF Processing**: <https://pymupdf.readthedocs.io/>
+- **PDF Processing**: <https://docling-project.github.io/docling/>
 
 ---
 

@@ -79,7 +79,7 @@ Retornar respuesta con citaciones de fuentes
 - Más fácil de procesar programáticamente
 - Mejor calidad de embeddings
 
-**Herramientas:** Usaremos `pymupdf4llm` que extrae texto inteligentemente mientras preserva la estructura markdown.
+**Herramientas:** Usaremos `docling`, que lee el diseño de la página para encontrar títulos y tablas y los escribe como markdown. Incluye su propio OCR para páginas escaneadas, así que no hay que instalar nada más.
 
 ---
 
@@ -196,7 +196,7 @@ Asegúrate de tener:
 - Tres reportes PDF de proyectos en `data/project_reports/`
 - Activar entorno: `.venv/Scripts/activate.ps1`
 
-Todos los paquetes requeridos (pymupdf4llm, openai, pandas, numpy, scikit-learn, etc.) se instalarán automáticamente cuando ejecutes `just venv`.
+Todos los paquetes requeridos (docling, openai, pandas, numpy, scikit-learn, etc.) se instalarán automáticamente cuando ejecutes `just venv`.
 
 ---
 
@@ -212,7 +212,7 @@ python examples/rag/01_pdf_to_markdown.py
 
 1. Escanea `data/project_reports/` buscando archivos PDF
 2. Para cada PDF:
-   - Extrae texto usando `pymupdf4llm`
+   - Extrae texto usando `docling` (la primera ejecución descarga sus modelos, unos 500 MB, y tarda unos minutos)
    - Preserva estructura markdown (encabezados, listas, párrafos)
    - Limpia artefactos de formato
    - Guarda en `outputs/markdown/nombre_proyecto.md`
@@ -230,7 +230,7 @@ python examples/rag/01_pdf_to_markdown.py
 
 **Problemas comunes:**
 
-- **PDFs escaneados (imágenes)**: No se extraerán bien—necesitan OCR primero
+- **PDFs escaneados (imágenes)**: docling les aplica OCR, pero espera más errores que con PDFs de texto—revisa el resultado
 - **Tablas complejas**: Pueden no convertirse perfectamente—inspeccionar salida
 - **Layouts multi-columna**: El orden del texto podría estar mal—verificar manualmente
 
@@ -640,7 +640,7 @@ Oráculo (todos)  | 95%      | 90%       | 2%
 ## Problemas comunes y soluciones
 
 **"La conversión de PDF tiene texto distorsionado"**
-→ El PDF podría ser escaneado (basado en imagen). Usa herramienta OCR primero (Adobe Acrobat, Tesseract).
+→ El PDF podría ser escaneado (basado en imagen). Docling aplica OCR automáticamente; revisa el markdown en `outputs/markdown/` por errores de reconocimiento.
 
 **"Los chunks son muy pequeños/muy grandes"**
 → Ajusta parámetros de chunking en `02_create_document_chunks.py`. Prueba rango 300-800 tokens.
@@ -710,7 +710,7 @@ Tipos de consulta:
 - **Guía Embeddings OpenAI**: <https://platform.openai.com/docs/guides/embeddings>
 - **Estrategias de Chunking**: <https://www.pinecone.io/learn/chunking-strategies/>
 - **Evaluación RAG**: <https://docs.llamaindex.ai/en/stable/examples/evaluation/>
-- **Procesamiento PDF**: <https://pymupdf.readthedocs.io/>
+- **Procesamiento PDF**: <https://docling-project.github.io/docling/>
 
 ---
 

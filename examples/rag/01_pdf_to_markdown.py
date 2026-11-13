@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-import pymupdf4llm
+from docling.document_converter import DocumentConverter
 
 
 def convert_pdfs_to_markdown(pdf_dir: str, output_dir: str) -> None:
@@ -26,12 +26,17 @@ def convert_pdfs_to_markdown(pdf_dir: str, output_dir: str) -> None:
 
     print(f"Found {len(pdf_files)} PDF files to convert:")
 
+    # Docling reads the page layout to find headings and tables, and runs its
+    # own OCR on scanned pages. The first run downloads its models (about
+    # 500 MB); after that it works offline.
+    converter = DocumentConverter()
+
     for pdf_file in pdf_files:
         print(f"\nProcessing: {pdf_file.name}")
 
         try:
-            # Convert PDF to markdown using pymupdf4llm
-            md_text = pymupdf4llm.to_markdown(str(pdf_file))
+            # Convert PDF to markdown using docling
+            md_text = converter.convert(pdf_file).document.export_to_markdown()
 
             # Create output filename
             output_file = output_path / f"{pdf_file.stem}.md"
