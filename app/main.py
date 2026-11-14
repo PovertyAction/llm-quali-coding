@@ -58,7 +58,7 @@ load_dotenv(ROOT / ".env")
 
 APP_NAME = "Qualitative Coding"
 ASSETS = Path(__file__).resolve().parent / "assets"
-SUPPORT_EMAIL = "support@poverty-action.org"
+SUPPORT_EMAIL = "researchsupport@poverty-action.org"
 DOCS_URL = "https://github.com/PovertyAction/llm-quali-coding#use-the-web-app"
 ISSUES_URL = "https://github.com/PovertyAction/llm-quali-coding/issues"
 
