@@ -36,6 +36,14 @@ venv:
 activate-venv:
     uv shell
 
+# launch the web app (extra arguments go to streamlit)
+app *ARGS:
+    uv run streamlit run app/main.py {{ ARGS }}
+
+# run the tests
+test:
+    uv run pytest
+
 # Local pipeline, step 1: split and de-identify the fictitious transcript
 local-deid:
     uv run python -m examples.local.01_deidentify

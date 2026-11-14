@@ -15,11 +15,14 @@ from .similarity import dot_similarity
 
 @dataclass
 class Theme:
-    """Represents a qualitative coding theme with name, definition, and embedding."""
+    """A codebook theme: name, definition, embedding, and optional coding guidance."""
 
     short_name: str
-    full_definition: str
+    full_definition: str  # "Name: definition"
     embedding: list[float] | None = None
+    include: str = ""  # when to apply the theme
+    exclude: str = ""  # when not to apply it
+    examples: str = ""  # example quotes
 
 
 def load_markdown(path: Path) -> str:
@@ -27,14 +30,79 @@ def load_markdown(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def load_themes(path: Path) -> list[Theme]:
-    """Load themes from JSON file and parse into Theme objects."""
-    data = json.loads(path.read_text(encoding="utf-8"))
+def themes_from_data(data: list) -> list[Theme]:
+    """Build themes from a codebook list.
+
+    Each item is either a "Name: definition" string or a dict with the keys
+    name, definition and, optionally, include, exclude, examples.
+    """
     themes: list[Theme] = []
     for item in data:
-        short = item.split(":")[0].strip() if ":" in item else item[:40].strip()
-        themes.append(Theme(short_name=short, full_definition=item))
+        if isinstance(item, str):
+            short = item.split(":")[0].strip() if ":" in item else item[:40].strip()
+            themes.append(Theme(short_name=short, full_definition=item))
+            continue
+        name = str(item.get("name") or "").strip()
+        if not name:
+            continue
+        definition = str(item.get("definition") or "").strip()
+        themes.append(
+            Theme(
+                short_name=name,
+                full_definition=f"{name}: {definition}" if definition else name,
+                include=str(item.get("include") or "").strip(),
+                exclude=str(item.get("exclude") or "").strip(),
+                examples=str(item.get("examples") or "").strip(),
+            )
+        )
     return themes
+
+
+def themes_to_data(themes: list[Theme]) -> list[dict[str, str]]:
+    """Turn themes into dicts for the codebook editor and for saving."""
+    return [
+        {
+            "name": t.short_name,
+            "definition": t.full_definition.removeprefix(t.short_name)
+            .removeprefix(":")
+            .strip(),
+            "include": t.include,
+            "exclude": t.exclude,
+            "examples": t.examples,
+        }
+        for t in themes
+    ]
+
+
+def load_themes(path: Path) -> list[Theme]:
+    """Load themes from JSON file and parse into Theme objects."""
+    return themes_from_data(json.loads(path.read_text(encoding="utf-8")))
+
+
+def dump_themes(themes: list[Theme]) -> str:
+    """Codebook as JSON; plain "Name: definition" strings when nothing else is set."""
+    if any(t.include or t.exclude or t.examples for t in themes):
+        data: list = themes_to_data(themes)
+    else:
+        data = [t.full_definition for t in themes]
+    return json.dumps(data, ensure_ascii=False, indent=2)
+
+
+def save_themes(path: Path, themes: list[Theme]) -> None:
+    """Save a codebook as JSON, readable by load_themes."""
+    path.write_text(dump_themes(themes), encoding="utf-8")
+
+
+def theme_prompt_text(theme: Theme) -> str:
+    """Render a theme with its coding guidance, for prompts and for embedding."""
+    lines = [theme.full_definition]
+    if theme.include:
+        lines.append(f"Include when: {theme.include}")
+    if theme.exclude:
+        lines.append(f"Exclude when: {theme.exclude}")
+    if theme.examples:
+        lines.append(f"Examples: {theme.examples}")
+    return "\n".join(lines)
 
 
 def build_chunk_dataframe(chunks: list[Chunk]) -> pd.DataFrame:

@@ -61,11 +61,75 @@ def build_analyzer(known_names: list[str] | None = None) -> AnalyzerEngine:
     )
 
 
+def _identifies(found: str, keep: set[str], proper_nouns_only: bool = False) -> bool:
+    """Decide whether a detected person or place should be replaced.
+
+    - `keep` holds lowercased words the researcher wants left in the text: a
+      country or large city does not identify anyone, and a detector cannot
+      tell a village from a capital.
+    - With `proper_nouns_only`, a span written entirely in lowercase is left
+      alone. GLiNER2-PII tags kin and role words ("esposo", "tesorera") and
+      generic places ("casa", "mercado") with the same confidence as real
+      names, so the score cannot separate them; the capital letter can.
+      Scripts without capital letters (Amharic, Arabic, Hindi) are not
+      affected, because `islower()` is False for them.
+    """
+    if found.strip().casefold() in keep:
+        return False
+    if len(found.strip()) < 2:
+        return False  # the English pronoun "I" is capitalized but is no name
+    return not (proper_nouns_only and found.islower())
+
+
+# Placeholders in the language of the transcript, so the cleaned text reads
+# naturally. Keys are the GLiNER labels; KINDS maps Presidio's names to them.
+PLACEHOLDERS = {
+    "es": {
+        "person": "<PERSONA>",
+        "phone_number": "<TELEFONO>",
+        "email": "<CORREO>",
+        "location": "<LUGAR>",
+    },
+    "en": {
+        "person": "<PERSON>",
+        "phone_number": "<PHONE>",
+        "email": "<EMAIL>",
+        "location": "<PLACE>",
+    },
+    "fr": {
+        "person": "<PERSONNE>",
+        "phone_number": "<TELEPHONE>",
+        "email": "<COURRIEL>",
+        "location": "<LIEU>",
+    },
+}
+KINDS = {
+    "PERSON": "person",
+    "PHONE_NUMBER": "phone_number",
+    "EMAIL_ADDRESS": "email",
+    "LOCATION": "location",
+}
+
+
 def deidentify(
-    text: str, analyzer: AnalyzerEngine
+    text: str,
+    analyzer: AnalyzerEngine,
+    keep: list[str] | None = None,
+    placeholders: str = "es",
 ) -> tuple[str, list[dict[str, object]]]:
-    """Return the text with entities replaced, and a list of what was found."""
-    results = analyzer.analyze(text=text, entities=ENTITIES, language=LANGUAGE)
+    """Return the text with entities replaced, and a list of what was found.
+
+    Names and places listed in `keep` are left in the text. `placeholders` is
+    the language of the replacement tags (a key of PLACEHOLDERS).
+    """
+    tags = PLACEHOLDERS[placeholders]
+    kept = {k.strip().casefold() for k in keep or []}
+    results = [
+        r
+        for r in analyzer.analyze(text=text, entities=ENTITIES, language=LANGUAGE)
+        if r.entity_type not in ("PERSON", "LOCATION")
+        or _identifies(text[r.start : r.end], kept)
+    ]
     findings = [
         {
             "entity": r.entity_type,
@@ -76,8 +140,8 @@ def deidentify(
         for r in results
     ]
     operators = {
-        entity: OperatorConfig("replace", {"new_value": label})
-        for entity, label in LABELS.items()
+        entity: OperatorConfig("replace", {"new_value": tags[kind]})
+        for entity, kind in KINDS.items()
     }
     anonymized = AnonymizerEngine().anonymize(
         text=text, analyzer_results=results, operators=operators
@@ -87,7 +151,8 @@ def deidentify(
 
 # GLiNER2-PII: a second detector, a small multilingual transformer (Spanish is
 # on its model card) that reads the whole sentence instead of matching
-# patterns. It finds names without a list and over-redacts words like "esposo".
+# patterns. It finds names without a list. It also tags lowercase words like
+# "esposo" and "casa", which deidentify_gliner() leaves alone by default.
 GLINER_MODEL = "fastino/gliner2-privacy-filter-PII-multi"
 GLINER_LABELS = {
     "person": "<PERSONA>",
@@ -109,8 +174,19 @@ def deidentify_gliner(
     model,
     known_names: list[str] | None = None,
     threshold: float = 0.5,
+    keep: list[str] | None = None,
+    proper_nouns_only: bool = True,
+    placeholders: str = "es",
 ) -> tuple[str, list[dict[str, object]]]:
-    """Replace entities with GLiNER2-PII and the name list; same output as deidentify()."""
+    """Replace entities with GLiNER2-PII and the name list; same output as deidentify().
+
+    Only identifying information is replaced: names of people and places,
+    phone numbers and email addresses. See `_identifies` for `keep` and
+    `proper_nouns_only`. Set `proper_nouns_only=False` for a transcript typed
+    without capital letters, where a name looks like any other word. Names in
+    `known_names` are always replaced.
+    """
+    kept = {k.strip().casefold() for k in keep or []}
     result = model.extract_entities(
         text,
         list(GLINER_LABELS),
@@ -122,6 +198,8 @@ def deidentify_gliner(
         (e["start"], e["end"], label, round(e["confidence"], 2), "GLiNER2-PII")
         for label, found in result["entities"].items()
         for e in found
+        if label not in ("person", "location")
+        or _identifies(text[e["start"] : e["end"]], kept, proper_nouns_only)
     ]
     for name in known_names or []:
         for m in re.finditer(rf"\b{re.escape(name)}\b", text, re.IGNORECASE):
@@ -140,7 +218,7 @@ def deidentify_gliner(
             merged.append([span[0], span[1], span])
     findings, out, last = [], [], 0
     for start, end, (_, _, label, score, source) in merged:
-        out += [text[last:start], GLINER_LABELS[label]]
+        out += [text[last:start], PLACEHOLDERS[placeholders][label]]
         last = end
         findings.append(
             {

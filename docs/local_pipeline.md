@@ -82,11 +82,23 @@ just local-deid-gliner   # outputs/local/01_passages_deid_gliner.csv and 01_find
 ```
 
 On the fictitious focus group it found every planted name, phone number, and
-email without the name list. It also replaced "esposo", "tesorera",
-"cosecha", and "mercado", which the coding step needs. Compare the two findings
-files; step 2 reads the Presidio file. The threshold (0.5, from the model card)
-is an argument to `deidentify_gliner()`. Raising it cuts over-redaction and
-raises the risk of misses.
+email without the name list. Compare the two findings files; step 2 reads the
+Presidio file.
+
+The model also tags ordinary words: "esposo", "tesorera", "cosecha",
+"mercado". It gives them the same score as real names, so raising the
+threshold does not remove them. They are written in lowercase, though, and
+names are not. `deidentify_gliner()` therefore leaves a person or place alone
+when it has no capital letter. Two arguments control this:
+
+- `proper_nouns_only=True` (the default). Set it to `False` for a transcript
+  typed without capital letters, where a name looks like any other word.
+- `keep`: a list of places and words to leave in the text. The model replaces
+  every place name and cannot tell a village from a capital, so list the
+  places too large to identify anyone (the country, a big city).
+
+The threshold (0.5, from the model card) is a third argument. Names in the
+name list are always replaced.
 
 ### Step 2: filter and code with embeddings
 

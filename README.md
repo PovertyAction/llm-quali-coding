@@ -15,6 +15,7 @@ command you can copy and paste.
 | Code transcripts with embeddings and LLMs                | [Session 03](docs/session_03_quali_coding.md)                      | OpenAI              |
 | Ask questions of a set of PDF reports (RAG)              | [Session 04](docs/session_04_rag_demo.md) ([español](docs/session_04_rag_demo_es.md)) | OpenAI |
 | Code transcripts on my laptop, sending nothing to an API | [Local pipeline](docs/local_pipeline.md)                           | None                |
+| Code my own transcripts in a browser, without writing code | [Web app](#use-the-web-app)                                      | Optional            |
 
 New to all of this? Do the setup below, then the sessions in order. Each one
 builds on the one before. The local pipeline stands on its own.
@@ -110,6 +111,94 @@ just local-compare    # compare the codes with a person's codes
 The [local pipeline guide](docs/local_pipeline.md) explains each step and how
 to add Claude Code as a second coder.
 
+## Use the web app
+
+The web app runs the coding steps from Session 03 and the local pipeline in
+your browser, on your own transcripts and your own codebook. After setup steps
+1 to 3:
+
+```bash
+just app
+```
+
+Without just: `uv run streamlit run app/main.py`. Your browser opens at
+<http://localhost:8501>. Only your computer can open that address. Press
+Ctrl+C in the terminal to stop the app.
+
+Work through the pages in the left menu in order. A check mark appears beside
+a step once it is done, and each page ends with a link to the next one:
+
+1. **Project and models.** Create a project, or load the example project (the
+   invented focus group). Choose where the language model runs:
+   - *On this computer*: install [Ollama](https://ollama.com) or
+     [LM Studio](https://lmstudio.ai) and download a model. Nothing leaves your
+     computer. Small models are slow without a graphics card.
+   - *Cloud API*: Anthropic or OpenAI, with your own API key.
+   - *Institution cloud*: Azure OpenAI or AWS Bedrock, if your organization
+     gives you access.
+2. **Study inputs.** Write the research question and study context. Build the
+   codebook in the table: a name and a definition for each theme, and
+   optionally when to include it, when to exclude it, and example quotes. You
+   can load a codebook from JSON or CSV. Choose what counts as a passage and
+   whether each passage gets one theme or a yes/no for every theme.
+3. **Transcripts.** Add as many transcripts as you like (`.md`, `.txt`,
+   `.docx`, `.pdf`). The app works best when each turn is a line that starts
+   with `SPEAKER:`. De-identify them, then read each passage next to the
+   original. Only new or changed transcripts are prepared again, so adding a
+   transcript does not disturb the ones already coded.
+4. **Run.** Tick the steps and run them on every transcript: a quick first
+   pass by similarity (no language model), code with a language model, code
+   again with a second model, flag non-verbal cues, propose themes, translate.
+   The page says where the text goes before you run.
+5. **Results.** Browse the coded passages, count passages per theme, add
+   proposed themes to the codebook, and download a CSV or the whole project.
+6. **Check against human codes.** Upload a person's codes for a sample of
+   passages to see the agreement and Cohen's kappa. Do this before trusting
+   the model's codes.
+
+Languages:
+
+- The interface is available in English, Spanish and French. Choose the
+  language at the bottom of the left menu; the app remembers it. The first
+  time, it follows your browser's language.
+- The example project comes in the same three languages. Pick the language of
+  the example on the first page.
+- Your transcripts can be in any language the models you choose can read.
+  Tell the app the language of the placeholders (`<PERSON>`, `<PERSONA>`,
+  `<PERSONNE>`) on the Transcripts page, and the language for the model's
+  reasons on the Study inputs page.
+- To add an interface language, copy `app/locales/es.json` to
+  `app/locales/<code>.json`, set `"_name"`, and translate the values. Run
+  `just test`: it lists any string the new file is missing.
+
+Good to know:
+
+- Each project is a folder in `outputs/projects/`. Git ignores it. Close the
+  app and reopen it later: your inputs and results are still there.
+- The app saves every answer a model gives. If a run stops or one transcript
+  fails, run it again: only the missing answers are requested, so you do not
+  pay twice.
+- API keys are kept for the session only. They are never saved in the project.
+  The app reads the keys in your `.env` file if you have one.
+- The left menu always shows whether text stays on your computer or which
+  service receives it. The model list shows the data classification each
+  service is approved for. A run that sends passages to a cloud service says
+  exactly what is sent and asks you to confirm the classification first.
+- After preparing a transcript, read it and mark it as reviewed. The Run page
+  warns when a transcript headed for a cloud service has not been marked.
+- If you change the codebook or the model after a run, the app tells you the
+  codes on screen are out of date until you run again.
+- The project download leaves out the original transcripts, the roster and the
+  list of replaced names.
+- Coding with embeddings needs a relevance threshold that fits the embedding
+  model. Page 6 shows the agreement for each value.
+- A model on your own computer is slow without a graphics card: expect up to a
+  minute per passage on a laptop. Keep the computer awake during a run.
+- "Propose themes" sends a whole transcript in one request. Local model
+  servers often read only the first few pages by default (Ollama: 4,096
+  tokens) and drop the rest without a warning. Raise the context length in
+  the server's settings, or use a cloud model for that step.
+
 ## What is in this repository
 
 ```text
@@ -127,7 +216,9 @@ llm-quali-coding/
 │   ├── 01_translate_transcript.py ... 07_model_comparison.py   # Session 03
 │   ├── rag/                      # Session 04: PDF to text, vector database, RAG, evaluation
 │   └── local/                    # Local pipeline: 01_deidentify, 02_filter_classify, 04_compare
-├── src/                          # Code the scripts share; you rarely edit this
+├── app/                          # The web app (`just app`)
+├── src/                          # Code the scripts and the app share; you rarely edit this
+├── tests/                        # Checks for the pipeline and the app (`just test`)
 ├── data/                         # Small sample files; nothing sensitive
 │   ├── ipa-best-bets-2025.md     # Document translated in Session 01
 │   ├── sample_docs/, exercise/   # Short documents for Session 02
@@ -150,6 +241,10 @@ names and other personal information.
   confidential data or anything that identifies a research participant.
 - The local pipeline keeps the transcript on your laptop, and it still needs
   your IRB protocol to allow the analysis.
+- The web app keeps everything on your laptop only when both models on page 1
+  are set to "On this computer". With a cloud model, the de-identified
+  passages are sent to that service. De-identification misses things: read
+  the passages before you run a cloud step.
 - Read the IPA AI Usage Guidelines (Box: `IPA_IT_Resources/Policies/AI - Claude`)
   and ask <support@poverty-action.org> when unsure.
 

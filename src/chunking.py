@@ -82,8 +82,12 @@ def parse_speakers(text: str) -> list[dict]:
     current_text = []
 
     for line in lines:
-        # Match speaker labels (e.g., "MODERADOR:", "FACILITADOR 1:")
-        speaker_match = re.match(r"^([A-ZÁÉÍÓÚÑ\s]+\d*):\s*(.*)$", line, re.IGNORECASE)
+        # Match speaker labels (e.g., "MODERADOR:", "FACILITADOR 1:",
+        # "MOUSSA TRAORÉ:"): letters of any alphabet, spaces, and the marks
+        # found in names, then an optional number.
+        speaker_match = re.match(
+            r"^(?=[^:]*[^\W\d_])((?:[^\W\d_]|[\s.'’-])+\d*):\s*(.*)$", line
+        )
 
         if speaker_match:
             # Save previous speaker's text
