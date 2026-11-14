@@ -10,7 +10,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-from sklearn.metrics import cohen_kappa_score
+
+from src.pipeline import agreement, threshold_table
 
 OUT = Path("outputs/local")
 OFF_TOPIC = "Fuera de tema"
@@ -20,23 +21,25 @@ pd.set_option("display.max_columns", None)
 
 def report(name: str, human: pd.Series, model: pd.Series, text: pd.Series) -> None:
     """Print agreement, Cohen's kappa, a confusion table, and disagreements."""
-    print(f"\n=== {name} vs human, {len(human)} passages ===")
-    print(f"Agreement: {(human == model).mean():.0%}")
-    print(f"Cohen's kappa: {cohen_kappa_score(human, model):.2f}")
-    print(pd.crosstab(human, model, rownames=["human"], colnames=[name]))
-    for pid in human.index[human != model]:
+    result = agreement(human, model, "human", name)
+    print(f"\n=== {name} vs human, {result['n']} passages ===")
+    print(f"Agreement: {result['agreement']:.0%}")
+    print(f"Cohen's kappa: {result['kappa']:.2f}")
+    print(result["confusion"])
+    for pid in result["disagreements"]:
         print(f"- {pid}: human {human[pid]!r}, {name} {model[pid]!r}: {text[pid]}")
 
 
-def threshold_table(human: pd.Series, coded: pd.DataFrame) -> None:
+def print_threshold_table(human: pd.Series, coded: pd.DataFrame) -> None:
     """Print agreement with the person for each candidate THRESHOLD in step 2."""
     print("\n=== embeddings: agreement by THRESHOLD (step 2) ===")
     print("Pick the best row, then go a little lower: a passage dropped by")
     print("mistake is harder to notice than small talk kept by mistake.")
-    for t in sorted(set(coded["relevance"])):
-        model = coded["nearest_theme"].where(coded["relevance"] >= t, OFF_TOPIC)
-        kappa = cohen_kappa_score(human, model)
-        print(f"  {t:.2f}  agreement {(human == model).mean():4.0%}  kappa {kappa:.2f}")
+    for row in threshold_table(human, coded, OFF_TOPIC).itertuples():
+        print(
+            f"  {row.threshold:.2f}  agreement {row.agreement:4.0%}"
+            f"  kappa {row.kappa:.2f}"
+        )
 
 
 def main() -> None:
@@ -47,7 +50,7 @@ def main() -> None:
     human = pd.read_csv("data/fictitious/codigos_humanos.csv", index_col="passage_id")
     coded = pd.read_csv(coded_path, index_col="passage_id").loc[human.index]
     report("embeddings", human["theme"], coded["embedding_theme"], coded["text"])
-    threshold_table(human["theme"], coded)
+    print_threshold_table(human["theme"], coded)
 
     claude_path = OUT / "03_claude_codes.csv"
     if not claude_path.exists():

@@ -6,9 +6,9 @@ while keeping the API differences visible for educational purposes.
 
 import os
 
-from anthropic import Anthropic
+from anthropic import Anthropic, AnthropicBedrockMantle
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AzureOpenAI, OpenAI
 
 # Load environment variables from .env file
 load_dotenv()
@@ -100,6 +100,63 @@ def get_client(provider=None):
     raise ValueError(f"Invalid provider: {provider}")
 
 
+# Backends the web app offers, and the API format ("wire") each one speaks.
+# create_completion() takes the wire as its `provider` argument.
+BACKENDS = {
+    "local": "openai",  # Ollama, LM Studio: OpenAI-compatible server on the laptop
+    "anthropic": "anthropic",
+    "openai": "openai",
+    "azure": "openai",
+    "bedrock": "anthropic",  # Claude models only
+}
+LOCAL_BASE_URL = "http://localhost:11434/v1"  # Ollama; LM Studio uses port 1234
+
+
+def make_client(
+    backend,
+    *,
+    api_key=None,
+    base_url=None,
+    azure_endpoint=None,
+    api_version=None,
+    aws_region=None,
+    aws_profile=None,
+    max_retries=5,
+):
+    """Build a client for any backend in BACKENDS.
+
+    Empty settings fall back to the SDK's own environment variables
+    (ANTHROPIC_API_KEY, OPENAI_API_KEY, AZURE_OPENAI_API_KEY, AWS_PROFILE, ...).
+
+    Returns:
+        tuple: (client, wire) where wire is "openai" or "anthropic"
+
+    """
+    if backend not in BACKENDS:
+        raise ValueError(f"Invalid backend: {backend}. Choose from {list(BACKENDS)}")
+    common = {"max_retries": max_retries}
+    if backend == "local":
+        client = OpenAI(
+            base_url=base_url or LOCAL_BASE_URL, api_key=api_key or "local", **common
+        )
+    elif backend == "openai":
+        client = OpenAI(api_key=api_key or None, **common)
+    elif backend == "azure":
+        client = AzureOpenAI(
+            azure_endpoint=azure_endpoint or None,
+            api_key=api_key or None,
+            api_version=api_version or None,
+            **common,
+        )
+    elif backend == "bedrock":
+        client = AnthropicBedrockMantle(
+            aws_region=aws_region or None, aws_profile=aws_profile or None, **common
+        )
+    else:
+        client = Anthropic(api_key=api_key or None, **common)
+    return client, BACKENDS[backend]
+
+
 def _extract_system_message(messages):
     """Extract system message from messages array for Anthropic.
 
@@ -156,8 +213,8 @@ def _convert_tools_to_anthropic(tools):
     return anthropic_tools
 
 
-def create_completion(client, provider, model, messages, **kwargs):
-    """Create a chat completion with provider-specific handling.
+def complete_with_usage(client, provider, model, messages, **kwargs):
+    """Create a chat completion and report how many tokens it used.
 
     Args:
         client: Authenticated client (OpenAI or Anthropic instance)
@@ -167,14 +224,19 @@ def create_completion(client, provider, model, messages, **kwargs):
         **kwargs: Additional parameters (temperature, etc.)
 
     Returns:
-        str: The response text content
+        tuple: (response text, input tokens, output tokens)
 
     """
     if provider == "openai":
         response = client.chat.completions.create(
             model=model, messages=messages, **kwargs
         )
-        return response.choices[0].message.content
+        usage = response.usage  # local servers may leave this out
+        return (
+            response.choices[0].message.content or "",
+            getattr(usage, "prompt_tokens", 0) or 0,
+            getattr(usage, "completion_tokens", 0) or 0,
+        )
 
     if provider == "anthropic":
         # Extract system message
@@ -189,12 +251,48 @@ def create_completion(client, provider, model, messages, **kwargs):
         }
 
         if system_content:
-            request_params["system"] = system_content
+            # Marking the system prompt cacheable makes repeated calls with the
+            # same instructions (one per passage) cheaper. Prompts too short
+            # to cache are sent as usual.
+            request_params["system"] = [
+                {
+                    "type": "text",
+                    "text": system_content,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ]
 
         response = client.messages.create(**request_params)
-        return response.content[0].text
+        if response.stop_reason == "refusal":
+            raise RuntimeError(f"{model} declined to answer this request.")
+        # Newer Claude models return thinking blocks before the text block.
+        text = "".join(b.text for b in response.content if b.type == "text")
+        usage = response.usage
+        input_tokens = (
+            usage.input_tokens
+            + (getattr(usage, "cache_read_input_tokens", 0) or 0)
+            + (getattr(usage, "cache_creation_input_tokens", 0) or 0)
+        )
+        return text, input_tokens, usage.output_tokens
 
     raise ValueError(f"Invalid provider: {provider}")
+
+
+def create_completion(client, provider, model, messages, **kwargs):
+    """Create a chat completion with provider-specific handling.
+
+    Args:
+        client: Authenticated client (OpenAI or Anthropic instance)
+        provider: Provider name ("openai" or "anthropic")
+        model: Model name (provider-specific)
+        messages: List of message dicts with "role" and "content"
+        **kwargs: Additional parameters (temperature, etc.)
+
+    Returns:
+        str: The response text content
+
+    """
+    return complete_with_usage(client, provider, model, messages, **kwargs)[0]
 
 
 def create_streaming_completion(client, provider, model, messages, **kwargs):

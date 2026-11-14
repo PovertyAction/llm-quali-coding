@@ -1,0 +1,67 @@
+# Shared look with DataSure, IPA's data quality tool: the same canvas, text
+# colour, font stack, corner radius, chart palettes and sidebar treatment
+# (datasure/src/datasure/.streamlit/config.toml).
+[theme]
+base = "light"
+
+# Buttons, checkboxes and sliders. DataSure's red-orange (#f26529) gives white
+# button text 3.2:1; this is the darker orange from the same palette, 4.9:1.
+primaryColor = "#c8420a"
+
+backgroundColor = "#F1F2F2"
+secondaryBackgroundColor = "#cbcece"
+textColor = "#414042"
+linkColor = "#2b4085"
+# Edges of inputs, tick boxes and cards. The default grey gives 1.4:1 against
+# the canvas, so a control is hard to see as a control; this gives 3.9:1.
+borderColor = "#77787a"
+showWidgetBorder = true
+baseRadius = "medium"
+font = "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif"
+
+# IPA brand colours, for any chart.
+chartCategoricalColors = [
+    "#84d0d4", # light-blue
+    "#2b4085", # dark-blue
+    "#f26529", # red-orange
+    "#be9ffa", # purple
+    "#f5cb57", # yellow
+    "#49ac57", # ipa-green
+    "#414042", # charcoal
+    "#5566b0", # medium blue
+    "#c8420a", # dark orange
+]
+chartSequentialColors = [
+    "#49ac57",
+    "#3f9953",
+    "#3c9051",
+    "#35874e",
+    "#317e4c",
+    "#2b754a",
+    "#266c48",
+    "#216345",
+    "#1b5c43",
+    "#155240",
+]
+
+[theme.sidebar]
+showWidgetBorder = true
+
+# No "Deploy" button and no code tracebacks: this app holds transcripts and is
+# used by researchers, not developers.
+[client]
+toolbarMode = "viewer"
+showErrorDetails = false
+
+[server]
+# Streamlit's auto-reload watcher touches every transformers lazy module, and
+# the vision ones log "No module named 'torchvision'" tracebacks. For live
+# reload while editing the app: just app --server.fileWatcherType auto
+fileWatcherType = "none"
+# Only this computer can open the app. Without this, Streamlit also serves it
+# to every device on the same network, transcripts and all.
+address = "localhost"
+
+# The app runs on the researcher's own computer; nothing to report.
+[browser]
+gatherUsageStats = false

@@ -13,13 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.coding import (
-    Theme,
-    add_theme_similarity_columns,
-    classify_by_max_theme,
-    load_themes,
-)
-from src.local_embeddings import embed_texts
+from src.coding import load_themes
+from src.pipeline import code_with_embeddings, make_embedder
 
 OUT = Path("outputs/local")
 # Tuned for the default model in src/local_embeddings.py, whose scores all
@@ -34,21 +29,11 @@ def main() -> None:
     passages = OUT / "01_passages_deid.csv"
     if not passages.exists():
         raise SystemExit(f"Missing {passages}. Run step 1 first: just local-deid")
-    df = pd.read_csv(passages)
-    df["embedding"] = embed_texts(df["text"].tolist())
-
     themes = load_themes(Path("data/fictitious/codebook_ficticio.json"))
-    vectors = embed_texts([t.full_definition for t in themes], query=True)
-    themes = [
-        Theme(t.short_name, t.full_definition, v)
-        for t, v in zip(themes, vectors, strict=True)
-    ]
-    names = [t.short_name for t in themes]
-    df = add_theme_similarity_columns(df, themes)
-    df = classify_by_max_theme(df, names, out_col="nearest_theme")
-    df["relevance"] = df[names].max(axis=1).round(2)
+    df = code_with_embeddings(
+        pd.read_csv(passages), themes, make_embedder("local"), THRESHOLD, OFF_TOPIC
+    )
     relevant = df["relevance"] >= THRESHOLD
-    df["embedding_theme"] = df["nearest_theme"].where(relevant, OFF_TOPIC)
 
     out = df[["passage_id", "relevance", "nearest_theme", "embedding_theme", "text"]]
     out.to_csv(OUT / "02_coded.csv", index=False)
